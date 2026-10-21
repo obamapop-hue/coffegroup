@@ -1,0 +1,13 @@
+{% extends "accounts/dashboard.html" %}
+{% load static %}
+{% block body_class %}sheet-page{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{% static 'css/sheets.css' %}">{% endblock %}
+{% block dashboard_title %}카페·판매자 관리{% endblock %}
+{% block dashboard_content %}
+<p class="sheet-intro">카페 정보와 판매자 연결을 표에서 한 번에 관리하세요. 연결코드를 비우면 판매자 연결이 해제돼요.</p>
+{% if form.errors %}<div class="sheet-error-summary" role="alert">{{ form.errors }}</div>{% endif %}
+{% url 'cafes:sheet-cafes' as sheet_url %}
+{% include "cafes/sheet_workspace.html" with sheet_kind="cafes" %}
+<section class="account-panel recent-orders"><h2>최근 주문서</h2>{% for room in recent_rooms %}<a class="history-item" href="{% url 'orders:detail' room.pk %}"><span>{{ room.cafe_snapshot.name }}<br><time>{{ room.created_at|date:"Y.m.d H:i" }}</time></span><span class="status-chip">{{ room.get_status_display }}</span></a>{% empty %}<p>아직 생성된 주문서가 없어요.</p>{% endfor %}</section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/sheets.js' %}" defer></script>{% endblock %}

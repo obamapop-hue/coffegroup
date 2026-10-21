@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main id="main" class="account-main">
+  {% block dashboard_heading %}<div class="account-heading"><h1>{% block dashboard_title %}내 주문{% endblock %}</h1></div>{% endblock %}
+  {% block dashboard_content %}{% endblock %}
+</main>
+{% endblock %}

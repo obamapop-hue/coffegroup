@@ -1,0 +1,12 @@
+{% extends "accounts/dashboard.html" %}
+{% load static %}
+{% block body_class %}sheet-page{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{% static 'css/sheets.css' %}">{% endblock %}
+{% block dashboard_title %}{{ cafe.name }} 메뉴 관리{% endblock %}
+{% block dashboard_content %}
+<div class="catalog-heading"><p class="sheet-intro">{{ cafe.address|default:"카페 주소 미등록" }} · {{ cafe.phone|default:"전화번호 미등록" }}</p><a href="{% url 'accounts:operator' %}">카페·판매자 관리</a></div>
+{% if form.errors %}<div class="sheet-error-summary" role="alert">{{ form.errors }}</div>{% endif %}
+{% url 'cafes:sheet-catalog' cafe.pk as sheet_url %}
+{% include "cafes/sheet_workspace.html" with sheet_kind="catalog" %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/sheets.js' %}" defer></script>{% endblock %}

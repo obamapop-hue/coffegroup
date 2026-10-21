@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block content %}<main id="main" class="account-main narrow-main"><h1>주문서를 다시 확인해 주세요.</h1><p class="muted-text">{% if error %}{{ error }}{% else %}주문서를 연 뒤 주문이 변경됐어요. 최신 메뉴와 합계를 확인한 뒤 전송해 주세요.{% endif %}</p><a class="primary-button" href="{% url 'orders:detail' room_id %}">주문서 다시 확인</a></main>{% endblock %}

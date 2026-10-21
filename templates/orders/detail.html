@@ -1,0 +1,41 @@
+{% extends "accounts/dashboard.html" %}{% load static %}
+{% block title %}{{ room.created_at|date:"H:i" }} 주문서 · 영차{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{% static 'css/orders.css' %}">{% endblock %}
+{% block dashboard_heading %}<div class="account-heading order-heading">
+  <h1>{{ room.cafe_snapshot.name }}</h1>
+  <p class="order-cafe-contact">{{ room.cafe_snapshot.address|default:"주소 미등록" }} / {% if room.cafe_snapshot.phone %}<a href="tel:{{ room.cafe_snapshot.phone }}">{{ room.cafe_snapshot.phone }}</a>{% else %}전화번호 미등록{% endif %}</p>
+</div>{% endblock %}
+{% block dashboard_content %}
+{% if room.status == 'closed' %}<p class="order-note">참여가 마감된 주문서예요.</p>{% elif room.status == 'expired' %}<p class="order-note">자동 폐기된 주문서예요.</p>{% elif room.status == 'deleted' %}<p class="order-note">삭제된 주문서예요.</p>{% endif %}
+{% if final_order %}<section class="dispatch-notice" aria-label="주문 처리 안내" {% if room.status == 'pending' %}data-order-status data-status-url="{% url 'orders:state' room.pk %}"{% endif %}>
+  {% if room.status == 'pending' %}<strong>카페의 주문 수락을 기다리고 있어요.</strong><p>{{ final_order.respond_by|date:"H:i:s" }}까지 수락하지 않으면 자동으로 거절돼요.</p><p class="order-note" data-status-feedback aria-live="polite"></p>
+  {% elif room.status == 'rejected' %}<strong>주문 거절 · {{ room.rejection_reason }}</strong><p>{{ room.resolved_at|date:"m.d H:i" }} 처리</p>
+  {% elif room.status == 'cancelled' %}<strong>취소된 주문이에요.</strong><p>{{ room.resolved_at|date:"m.d H:i" }} 취소</p>
+  {% elif room.status == 'accepted' %}<strong>카페가 주문을 수락했어요.</strong><p>{{ room.ready_at|date:"m.d H:i" }} 완료 예정</p>{% endif %}
+  <p class="order-note">전송: {{ final_order.sent_at|date:"m.d H:i:s" }} · 전송 후에는 주문 내용을 수정할 수 없어요.</p>
+  {% if can_cancel %}<form action="{% url 'orders:cancel' room.pk %}" method="post" data-confirm="카페가 수락하기 전 주문을 취소할까요?">{% csrf_token %}<button class="text-button" type="submit">주문 취소</button></form>{% endif %}
+</section>{% endif %}
+<section class="account-panel collection-panel">
+<div class="panel-heading collection-heading"><h2>[{{ room.created_at|date:"H:i" }}] 주문서</h2><input id="share-link" type="hidden" value="{{ share_url }}"><button class="order-copy-button" type="button" data-copy-share-link aria-label="참여 링크 복사" hidden>링크 복사</button></div>
+<p class="share-copy-status" data-share-copy-status role="status" aria-live="polite"></p>
+<div class="collection-total"><div class="collection-quantity"><span>총 {{ total_quantity }}잔</span><a class="collection-refresh" href="{% url 'orders:detail' room.pk %}" aria-label="주문 새로고침" title="새로고침"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11a9 9 0 0 1 15.4-5.4L21 8M21 3v5h-5M21 13a9 9 0 0 1-15.4 5.4L3 16M3 21v-5h5"/></svg></a></div><strong>{{ total_amount }}원</strong></div>
+{% if can_edit %}<a class="primary-button order-add-link" href="{% url 'orders:order-add' room.pk %}">내 주문 추가</a>{% endif %}
+{% if submissions %}<table class="collection-table" aria-label="참여자별 주문 목록">
+  <colgroup><col class="collection-name-col"><col><col class="collection-price-col">{% if can_edit %}<col class="collection-edit-col">{% endif %}</colgroup>
+  <thead><tr><th scope="col">주문자</th><th scope="col">주문 메뉴</th><th scope="col" class="collection-price">금액</th>{% if can_edit %}<th scope="col" class="collection-edit">주문 수정</th>{% endif %}</tr></thead>
+  <tbody>{% for submission in submissions %}{% for item in submission.items %}<tr>
+    <td class="collection-name">{{ submission.nickname }}</td>
+    <td><strong class="collection-menu">{{ item.menu_name }} × {{ item.quantity }}</strong><span class="collection-options">{% for group in item.options %}{% for choice in group.choices %}<span>{{ choice.name }}{% if choice.quantity > 1 %} × {{ choice.quantity }}{% endif %}</span>{% endfor %}{% endfor %}</span></td>
+    <td class="collection-price">{{ item.line_total }}원</td>
+    {% if can_edit %}<td class="collection-edit"><a href="{% url 'orders:order-edit' room.pk submission.pk %}" aria-label="{{ submission.nickname }} {{ item.menu_name }} 주문 수정">수정</a></td>{% endif %}
+  </tr>{% endfor %}{% endfor %}</tbody>
+</table>{% else %}<p>모인 주문이 없어요. 링크를 공유해주세요.</p>{% endif %}
+</section>
+{% if can_edit %}<div class="collection-controls">{% if can_delete %}<form action="{% url 'orders:delete' room.pk %}" method="post" data-confirm="주문서를 삭제할까요? 참여할 수 없게 되며 기록은 남아요.">{% csrf_token %}<button class="text-button" type="submit">주문서 삭제</button></form>{% endif %}{% if room.status == 'open' %}<form class="collection-close" action="{% url 'orders:close' room.pk %}" method="post" data-confirm="참여를 마감할까요? 마감 후에는 참여자가 제출할 수 없어요.">{% csrf_token %}<button class="primary-button" type="submit">참여 마감</button></form>{% endif %}</div>{% endif %}
+{% if can_send %}<form method="post" action="{% url 'orders:send' room.pk %}" class="final-confirm-form" data-final-confirm>{% csrf_token %}<input type="hidden" name="confirmation_token" value="{{ confirmation_token }}">
+  <p class="final-privacy">카페에는 <strong>메뉴·옵션·수량·금액과 총무님의 닉네임({{ request.user.display_name }})만</strong> 전달됩니다.<br>총무님의 전화번호와 참여자의 이름(닉네임) 등 개인정보는 전달되지 않습니다.</p>
+  <p class="order-note">전송 후에는 주문 내용을 수정할 수 없어요. 카페 수락 전에는 취소할 수 있으며, 5분 안에 수락하지 않으면 자동 거절돼요.</p>
+  <button class="primary-button" type="submit">주문서 전송</button>
+</form>{% endif %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/order-detail.js' %}" defer></script>{% endblock %}

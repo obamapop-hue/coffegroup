@@ -1,0 +1,6 @@
+{% extends "accounts/dashboard.html" %}
+{% block dashboard_title %}{{ menu.name }} 옵션{% endblock %}
+{% block dashboard_content %}
+<form class="option-editor" method="post">{% csrf_token %}<section class="account-panel stack-form">{{ form.as_p }}</section><section class="account-panel"><h2>선택 항목과 기본값</h2><p>빈 항목은 저장되지 않아요. 기본 선택을 체크하면 참여 화면에 미리 선택돼요.</p>{{ choices.management_form }}{{ choices.non_form_errors }}{% for choice in choices %}<div class="choice-fields stack-form">{{ choice.as_p }}</div>{% endfor %}<button class="primary-button" type="submit">옵션 저장</button></section></form>
+<a class="back-link" href="{% url 'cafes:manage' cafe.pk %}">메뉴 목록으로 돌아가기</a>
+{% endblock %}

@@ -1,0 +1,27 @@
+[project]
+name = "coffegroup"
+version = "0.1.0"
+description = "사무실 단체 커피 주문을 모으는 서비스"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "Django>=5.2,<5.3",
+    "django-allauth[socialaccount]>=65,<66",
+    "django-environ>=0.12,<0.13",
+    "gunicorn>=23,<27",
+    "psycopg[binary]>=3.2,<4",
+    "whitenoise>=6.8,<7",
+]
+
+[dependency-groups]
+dev = ["ruff>=0.14,<1"]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+

@@ -1,0 +1,17 @@
+/* Noto Sans KR, SIL Open Font License 1.1; see ../fonts/OFL.txt. */
+@font-face {
+  font-family: "Noto Sans KR";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/NotoSansKR-Korean.woff2") format("woff2");
+  unicode-range: U+0000-036F, U+1100-11FF, U+2000-2BFF, U+3130-318F, U+A960-A97F, U+AC00-D7FF, U+FE00-FE0F, U+FF00-FFEF;
+}
+@font-face {
+  font-family: "Noto Sans KR";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/NotoSansKR-Additional.woff2") format("woff2");
+  unicode-range: U+0370-10FF, U+1200-1FFF, U+2C00-312F, U+3190-A95F, U+A980-ABFF, U+D800-FDFF, U+FE10-FEFF, U+FFF0-10FFFF;
+}

@@ -1,0 +1,75 @@
+{% load static %}
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="only light">
+    <meta name="supported-color-schemes" content="light">
+    <meta name="description" content="한 명씩 묻고, 따로 적을 필요 없이. 각자 고른 커피가 하나의 주문서로 모여요.">
+    <meta name="theme-color" content="#ffffff">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:site_name" content="영차">
+    <meta property="og:title" content="영차 · 함께 마실 커피, 간편하게">
+    <meta property="og:description" content="한 명씩 묻고, 따로 적을 필요 없이. 각자 고른 커피가 하나의 주문서로 모여요.">
+    <meta property="og:url" content="{{ site_url }}">
+    <meta property="og:image" content="{{ share_image_url }}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="흰 배경 가운데 빨간 윤곽선으로 그린 영차의 귀여운 팔 로고">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="영차 · 함께 마실 커피, 간편하게">
+    <meta name="twitter:description" content="한 명씩 묻고, 따로 적을 필요 없이. 각자 고른 커피가 하나의 주문서로 모여요.">
+    <meta name="twitter:image" content="{{ share_image_url }}">
+    <title>{% block title %}영차 · 함께 마실 커피, 간편하게{% endblock %}</title>
+    <link rel="icon" href="{% static 'images/favicon.png' %}" type="image/png">
+    <link rel="preload" href="{% static 'fonts/NotoSansKR-Korean.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+    {% block extra_styles %}{% endblock %}
+  </head>
+  <body class="{% block body_class %}{% endblock %}">
+    <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="{% url 'home' %}" aria-label="영차 홈">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="{% static 'images/yeongcha-arm.png' %}" alt="" width="52" height="52">
+          </span>
+          <span>영차</span>
+        </a>
+        {% if request.user.is_authenticated %}
+          <form class="header-account" action="{% url 'accounts:logout' %}" method="post">
+            {% csrf_token %}
+            <a class="profile-link" href="{% url 'accounts:profile' %}" aria-label="{{ request.user.display_name }}님 개인정보">{{ request.user.display_name }}님</a>
+            <button class="text-button" type="submit">로그아웃</button>
+          </form>
+        {% endif %}
+      </header>
+      {% if messages %}
+        <div class="flash-messages" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>
+      {% endif %}
+      {% block content %}{% endblock %}
+      <footer class="site-footer">
+        <span class="footer-brand">영차</span>
+        <div class="footer-access" aria-label="관리 화면">
+          {% if request.user.is_authenticated %}
+            {% if request.resolver_match.url_name != 'organizer' %}<a href="{% url 'accounts:organizer' %}">내 주문으로 이동</a>{% endif %}
+            {% if can_access_seller and request.resolver_match.url_name != 'seller' %}
+              <form action="{% url 'accounts:start' 'seller' %}" method="post">{% csrf_token %}<button type="submit">판매자 페이지 이동</button></form>
+            {% endif %}
+            {% if request.user.is_operator and request.resolver_match.url_name != 'operator' %}<a href="{% url 'accounts:operator' %}">운영자 페이지 이동</a>{% endif %}
+          {% else %}
+            <a href="{% url 'accounts:entry-seller' %}">카페 판매자 로그인</a>
+            <span aria-hidden="true">·</span>
+            <a href="{% url 'accounts:entry-operator' %}">운영자 로그인</a>
+          {% endif %}
+        </div>
+      </footer>
+    </div>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
+

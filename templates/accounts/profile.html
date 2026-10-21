@@ -1,0 +1,28 @@
+{% extends "accounts/dashboard.html" %}
+{% load static %}
+{% block dashboard_title %}개인정보{% endblock %}
+{% block dashboard_content %}
+<section class="account-panel">
+  <h2>내 정보</h2>
+  <dl class="profile-info"><dt>닉네임</dt><dd>{{ request.user.display_name }}</dd><dt>가입일</dt><dd>{{ request.user.date_joined|date:"Y년 n월 j일" }}</dd></dl>
+</section>
+<section class="account-panel" aria-labelledby="order-history-title">
+  <h2 id="order-history-title">내 주문 이력</h2>
+  {% for room in history %}
+    <a class="history-item" href="{% url 'orders:detail' room.pk %}"><span><strong>{{ room.cafe_snapshot.name }}</strong><br><time>{{ room.created_at|date:"Y.m.d H:i" }}</time></span><span class="status-chip">{{ room.get_status_display }}</span></a>
+  {% empty %}<p>아직 주문 이력이 없어요.</p>{% endfor %}
+  {% if history.has_other_pages %}<nav class="pagination" aria-label="주문 이력 페이지">{% if history.has_previous %}<a href="?page={{ history.previous_page_number }}">이전</a>{% endif %}<span>{{ history.number }} / {{ history.paginator.num_pages }}</span>{% if history.has_next %}<a href="?page={{ history.next_page_number }}">다음</a>{% endif %}</nav>{% endif %}
+</section>
+<section class="account-panel">
+  <h2>내 계정 연결 코드</h2>
+  <p>운영자가 판매자 계정을 연결할 때 사용하는 코드예요.</p>
+  <div class="account-code-row">
+    <code class="member-code" id="account-code">{{ request.user.account_code }}</code>
+    <button class="copy-code-button" type="button" data-copy-account-code aria-label="계정 연결 코드 복사" title="복사" hidden>
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+    </button>
+  </div>
+  <p class="copy-status" id="copy-code-status" role="status" aria-live="polite"></p>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/profile.js' %}" defer></script>{% endblock %}

@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block content %}<main id="main" class="account-main"><h1>최신 주문을 확인해 주세요.</h1><p class="muted-text">다른 창에서 주문이 바뀌었거나 이미 삭제되었어요. 최신 내용을 확인한 뒤 다시 시도해 주세요.</p><a class="primary-button" href="{% url 'orders:detail' room_id %}">주문서 확인</a></main>{% endblock %}

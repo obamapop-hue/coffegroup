@@ -1,0 +1,3 @@
+{% extends "accounts/dashboard.html" %}
+{% block dashboard_title %}{{ cafe.name }} 메뉴{% endblock %}
+{% block dashboard_content %}<section class="account-panel"><form class="stack-form" method="post">{% csrf_token %}{{ form.as_p }}<button class="primary-button" type="submit">메뉴 저장</button></form><p>새 메뉴에는 아이스 / 핫, 샷 +0 옵션이 기본으로 생겨요. 저장 후 옵션과 추가 금액을 조정할 수 있어요.</p></section><a class="back-link" href="{% url 'cafes:manage' cafe.pk %}">메뉴 목록으로 돌아가기</a>{% endblock %}

@@ -1,0 +1,22 @@
+.env
+.env.*
+!.env.example
+.venv/
+.cache/
+.railway/
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+staticfiles/
+playwright-report/
+test-results/
+*.log
+.DS_Store
+# Database transfer files and local Google CLI state must stay out of source.
+*.dump
+*.backup
+.gcloud/
+

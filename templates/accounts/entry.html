@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<main id="main" class="account-main narrow-main">
+  <h1>{% if role == 'organizer' %}커피 주문을 시작해보세요.{% elif role == 'seller' %}카페 로그인{% else %}운영 관리 로그인{% endif %}</h1>
+  <p class="account-intro">카카오 계정 하나로 간편하게 이용하세요.</p>
+  <form class="stack-form" action="{% url 'accounts:start' role %}" method="post">{% csrf_token %}<button class="primary-button" type="submit" {% if not kakao_ready and not request.user.is_authenticated %}disabled{% endif %}>{% if request.user.is_authenticated %}{% if role == 'organizer' %}내 주문으로 이동{% elif role == 'seller' %}판매자 페이지 이동{% else %}운영자 페이지 이동{% endif %}{% else %}카카오로 시작하기{% endif %}</button></form>
+  {% if not kakao_ready and not request.user.is_authenticated %}<p class="muted-text">카카오 로그인 연결을 준비하고 있어요.</p>{% endif %}
+  {% if role == 'seller' %}<p class="muted-text">운영자가 카페에 연결한 계정만 판매자로 이용할 수 있어요. 판매자 로그인 시 영업이 시작되고, 로그아웃 시 영업이 종료돼요.</p>{% elif role == 'operator' %}<p class="muted-text">운영 권한이 있는 계정만 이용할 수 있어요.</p>{% endif %}
+</main>
+{% endblock %}

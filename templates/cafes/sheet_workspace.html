@@ -1,0 +1,26 @@
+<section class="sheet-workspace" data-sheet-app data-kind="{{ sheet_kind }}" data-url="{{ sheet_url }}" data-seller-url="{% url 'cafes:sheet-seller' %}" aria-label="일괄 관리">
+  {% csrf_token %}
+  <noscript><p>표 편집을 이용하려면 브라우저의 JavaScript를 켜 주세요.</p></noscript>
+  <fieldset class="sheet-controls" data-sheet-controls>
+    {% if sheet_kind == 'catalog' %}<div class="sheet-tabs" role="tablist" aria-label="관리 항목"><button type="button" role="tab" id="menus-tab" aria-controls="sheet-panel" aria-selected="true" data-tab="menus">메뉴 <span data-count="menus"></span></button><button type="button" role="tab" id="options-tab" aria-controls="sheet-panel" aria-selected="false" data-tab="options">옵션 <span data-count="options"></span></button></div>{% endif %}
+    <div class="sheet-toolbar">
+      <label class="sheet-search">검색<input type="search" data-search placeholder="이름·분류·연결코드 검색" autocomplete="off"></label>
+      <label>상태<select data-filter aria-label="상태 필터"></select></label>
+      <label data-menu-filter-label hidden>메뉴<select data-menu-filter aria-label="옵션 메뉴 필터"></select></label>
+      <button type="button" class="sheet-button" data-show-all hidden>전체 보기</button>
+      <div class="sheet-add-actions"><button type="button" class="sheet-button" data-add="1">＋ 행 추가</button><button type="button" class="sheet-button" data-add="10">10행 추가</button></div>
+    </div>
+    <div class="sheet-savebar"><span class="sheet-change-count" data-changes>변경사항 없음</span><div><button type="button" class="sheet-button" data-reset>변경 취소</button><button type="button" class="primary-button" data-save disabled>변경사항 저장</button></div></div>
+    <p class="sheet-help" data-help>셀을 눌러 수정하고, 엑셀에서 여러 행을 복사해 붙여넣을 수 있어요. 저장 전에는 실제 데이터가 바뀌지 않아요.</p>
+    <p class="sheet-result" role="status" aria-live="polite" data-result>저장된 내용을 불러왔어요.</p>
+    <div class="sheet-error-summary" role="alert" data-errors hidden></div>
+    <p class="sheet-scroll-hint">표를 좌우로 밀면 나머지 열을 볼 수 있어요.</p>
+    <div class="sheet-table-wrap" id="sheet-panel" tabindex="0" aria-label="편집 표 · 가로로 스크롤할 수 있어요">
+      <table class="sheet-table"><caption class="sr-only" data-caption>관리 표</caption><thead data-head></thead><tbody data-body></tbody></table>
+    </div>
+    <p class="sheet-empty" data-empty hidden>아직 등록된 항목이 없어요. 행을 추가하거나 엑셀 내용을 붙여넣어 보세요.</p>
+    <div class="sheet-bottom"><span data-row-count></span><button type="button" class="text-button" data-reload>최신 내용 다시 불러오기</button></div>
+  </fieldset>
+  <details class="sheet-history"><summary>최근 저장 이력</summary><ul data-history></ul></details>
+</section>
+{{ sheet_data|json_script:"sheet-initial-data" }}

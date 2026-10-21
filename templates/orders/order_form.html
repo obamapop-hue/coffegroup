@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}{% if editing %}주문 수정{% else %}메뉴 고르기{% endif %} · 영차{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{% static 'css/orders.css' %}">{% endblock %}
+{% block content %}
+<main id="main" class="account-main order-main">
+  <div class="account-heading"><h1>{{ room.cafe_snapshot.name }}</h1><p class="muted-text">{% if editing %}주문을 수정해 주세요.{% else %}각자 고르면, 하나의 주문서로 모여요.{% endif %}</p></div>
+  {% if is_organizer %}<a class="order-back" href="{% url 'orders:detail' room.pk %}">주문서로 돌아가기</a>{% endif %}
+  <form method="post" class="order-form" data-order-form>
+    {% csrf_token %}{{ form.items }}{{ form.request_token }}{{ form.version }}
+    {% if form.errors %}<div class="order-errors" role="alert"><strong>입력 내용을 확인해 주세요.</strong>{{ form.non_field_errors }}{% for field in form %}{{ field.errors }}{% endfor %}</div>{% endif %}
+    <section class="account-panel nickname-panel"><label for="{{ form.nickname.id_for_label }}">{{ form.nickname.label }}</label>{{ form.nickname }}<p>총무가 알아볼 수 있는 이름을 입력해 주세요.</p></section>
+    <section class="account-panel menu-picker"><h2>메뉴를 골라 주세요</h2>
+      <div class="menu-category-tabs" role="tablist" aria-label="메뉴 분류">{% for category in menu_categories %}<button type="button" role="tab" id="category-tab-{{ forloop.counter }}" aria-controls="category-panel-{{ forloop.counter }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}" tabindex="{% if forloop.first %}0{% else %}-1{% endif %}" data-category-tab>{{ category.name }}</button>{% endfor %}</div>
+      {% for category in menu_categories %}<div class="order-menu-list" id="category-panel-{{ forloop.counter }}" role="tabpanel" aria-labelledby="category-tab-{{ forloop.counter }}" {% if not forloop.first %}hidden{% endif %}>{% for item in category.items %}<article class="order-menu"><div><h3>{{ item.name }}</h3><span>{{ item.price }}원</span></div><button type="button" class="order-secondary" data-add-menu="{{ item.id }}" aria-label="{{ item.name }} 담기">담기</button></article>{% endfor %}</div>{% endfor %}
+    </section>
+    <section class="account-panel" aria-labelledby="cart-title"><h2 id="cart-title">내가 고른 메뉴</h2><p data-cart-empty>위 메뉴에서 ‘담기’를 눌러 주세요. 같은 메뉴도 옵션을 다르게 담을 수 있어요.</p><div data-cart></div></section>
+    <p class="order-errors" role="alert" data-cart-error hidden></p>
+    <div class="order-checkout"><div><span data-total-quantity>총 0잔</span><strong data-total-amount>0원</strong></div><button type="submit" class="primary-button" data-submit-order disabled>{% if editing %}수정 저장{% elif is_organizer %}주문 추가{% else %}주문 제출{% endif %}</button></div>
+    <p class="order-note">{% if is_organizer %}이 주문방에 고정된 메뉴판으로 주문을 작성해요.{% else %}제출 후에는 총무만 주문을 수정할 수 있어요.{% endif %}<br>미전송 주문서 자동 폐기: {{ room.expires_at|date:"m.d H:i" }}</p>
+    <noscript><p class="order-errors">메뉴를 담으려면 브라우저의 JavaScript를 켜 주세요.</p></noscript>
+  </form>
+  {% if editing %}<form class="order-entry-delete" action="{% url 'orders:order-delete' room.pk submission.pk %}" method="post" data-confirm="이 참여자의 주문을 모두 삭제할까요?">{% csrf_token %}<input type="hidden" name="version" value="{{ form.version.value }}"><button class="text-button" type="submit">이 참여자 주문 삭제</button></form>{% endif %}
+</main>
+{{ menu|json_script:"order-menu" }}{{ initial_items|json_script:"order-initial" }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/orders.js' %}" defer></script>{% if editing %}<script src="{% static 'js/order-detail.js' %}" defer></script>{% endif %}{% endblock %}
