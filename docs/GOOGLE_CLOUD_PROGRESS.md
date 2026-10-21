@@ -23,4 +23,17 @@
 - 기존 Railway 환경·DB·카카오 설정을 변경하지 않는다. 실제 Google 자원,
   새 사용 주소, 원본 DB 백업/복원, 6단계 공개 검수는 아직 완료되지 않았다.
 
-원본 보존 및 배포 준비의 실행 결과는 검증 뒤 아래에 추가한다.
+## 소스 보존 실행 결과
+
+- 원본 소스 147개 파일을 비밀값·개발 환경·캐시·DB 파일 없이 보관한 아카이브를
+  `/workspace/artifacts/coffegroup-gcp/yeongcha-source-before-google-cloud.tar.gz`에
+  만들었다. 압축 안의 모든 파일을 원본과 바이트 단위로 비교했다.
+- SHA256: `a12ddba80c8390c256d9e4ebf2a224f55b8377e3c2830d5757c7d6298dcebd92`.
+- 전체 소스와 6단계 구현을 첫 커밋 `9fe3f44`로 보존하고 사용자 저장소
+  `obamapop-hue/coffegroup`의 `codex/google-cloud-migration` 브랜치로
+  push에 성공했다. main 브랜치를 덮어쓰거나 강제 push하지 않았다.
+- 이 백업은 코드 백업이다. 원격 주문 DB, 비밀값, 현재 로그인 상태의 백업을
+  완료했다는 뜻은 아니다. Google 테스트 배포와 실제 데이터 이전도 아직 남아 있다.
+- 기초 점검 스크립트의 셸 구문·도움말·잘못된 프로젝트 ID 거부·gcloud 부재 시
+  실패 처리를 로컬에서 확인했다. Google Cloud Shell 인증 후 실제 접근 검증을
+  이어가야 한다.
