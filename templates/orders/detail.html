@@ -1,6 +1,10 @@
 {% extends "accounts/dashboard.html" %}{% load static %}
 {% block title %}{{ room.created_at|date:"H:i" }} 주문서 · 영차{% endblock %}
 {% block extra_styles %}<link rel="stylesheet" href="{% static 'css/orders.css' %}">{% endblock %}
+{% block flash_messages %}
+{% if room.status == 'open' or room.status == 'closed' %}<div class="flash-messages" role="status"><p>주문서 폐기 시간: <time datetime="{{ room.expires_at|date:'c' }}">{{ room.expires_at|date:"H:i" }}</time></p></div>{% endif %}
+{% for message in messages %}{% if message.level >= 30 %}<div class="flash-messages" role="alert"><p>{{ message }}</p></div>{% endif %}{% endfor %}
+{% endblock %}
 {% block dashboard_heading %}<div class="account-heading order-heading">
   <h1>{{ room.cafe_snapshot.name }}</h1>
   <p class="order-cafe-contact">{{ room.cafe_snapshot.address|default:"주소 미등록" }} / {% if room.cafe_snapshot.phone %}<a href="tel:{{ room.cafe_snapshot.phone }}">{{ room.cafe_snapshot.phone }}</a>{% else %}전화번호 미등록{% endif %}</p>
