@@ -26,6 +26,13 @@
 - 실제 로그인 후 새 Google 계정 연결 코드를 확인해 해당 본인 계정에만
   운영자 권한을 부여한다. 카페 등록 후 같은 계정을 판매자로 연결할 수 있다.
 
+Google의 최초 운영자 지정은 Cloud Run 서비스 `yeongcha-test`의 환경변수
+`INITIAL_OPERATOR_ACCOUNT_CODE`를 본인이 전달한 **새 연결 코드**로 임시 설정한다.
+`gcloud run services update`의 `--update-env-vars`를 사용해 기존 설정을 유지한다.
+명령이 성공한 뒤 사이트에서 로그아웃하고 카카오로 다시 로그인한다. 하단의
+운영자 페이지 접근이 확인되면 `--remove-env-vars=INITIAL_OPERATOR_ACCOUNT_CODE`로
+임시 지정값을 제거한다. 이미 부여된 운영자 권한은 DB에 남는다.
+
 이하 Railway 단계의 설정 기록은 과거 안내다. Google 작업은 Cloud Run과
 Secret Manager에서 수행하며 Railway 변수 등록을 다시 요구하지 않는다.
 
