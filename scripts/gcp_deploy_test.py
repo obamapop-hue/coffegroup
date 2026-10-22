@@ -84,6 +84,10 @@ def deploy_test(cloud, report=None, site_check=check_site):
     services = cloud.request(["run", "services", "list", region])
     jobs = cloud.request(["run", "jobs", "list", region])
     verify_owned_resource(services, SERVICE)
+    for service in services:
+        labels = service.get("metadata", {}).get("labels", service.get("labels", {}))
+        if resource_name(service) == SERVICE and labels.get("yeongcha-kakao") == "enabled":
+            raise SetupError("Kakao is configured. Use service updates, not the initial bootstrap.")
     job_exists = verify_owned_resource(jobs, JOB)
 
     report("1/5 Checking saved database credentials (no password will be printed).")

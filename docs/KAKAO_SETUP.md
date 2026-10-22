@@ -16,6 +16,13 @@
 - Cloud Run 환경변수는 `KAKAO_RESET_API_KEY`, `KAKAO_CLIENT_SECRET`,
   `KAKAO_LOGIN_ENABLED`를 사용한다. 앞의 두 개는 Secret Manager의 비밀값을
   참조하고, 활성화 값 `True`는 직접 설정하는 켜기 값이다.
+- 키를 연결하는 실행 파일은 `scripts/gcp_configure_kakao.py`다. 인증된 Cloud Shell에서
+  실행하면 REST API 키, 카카오 로그인용 Client Secret 순서로 숨긴 입력을 받는다.
+  입력값은 Secret Manager에 직접 저장한다. 입력 안내가 아닌 일반 `$` 프롬프트에는
+  키 값을 붙여넣지 않는다. 등록 후 재실행하면 저장된 값을 재사용하고,
+  `--replace-keys`를 명시한 경우에만 새 비밀값 버전을 추가한다.
+- 실행 파일은 로그인 **시작 설정**까지 검사한다. 실제 동의 화면과 왕복 로그인은
+  브라우저에서 본인 카카오 계정으로 확인한다.
 - 실제 로그인 후 새 Google 계정 연결 코드를 확인해 해당 본인 계정에만
   운영자 권한을 부여한다. 카페 등록 후 같은 계정을 판매자로 연결할 수 있다.
 

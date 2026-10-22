@@ -138,6 +138,21 @@ class TestDeploymentSafetyTests(unittest.TestCase):
         self.assertEqual(original, cloud.keys[SIGNING_SECRET])
         self.assertTrue(any(c[:3] == ["run", "jobs", "update"] for c in cloud.calls))
 
+    def test_bootstrap_cannot_disable_an_already_configured_login(self):
+        cloud = DeploymentModel()
+        cloud.services = [
+            {
+                "metadata": {
+                    "name": SERVICE,
+                    "labels": {LABEL_KEY: LABEL_VALUE, "yeongcha-kakao": "enabled"},
+                }
+            }
+        ]
+        with self.assertRaises(SetupError):
+            self.deploy(cloud)
+        self.assertFalse(cloud.keys)
+        self.assertFalse(any(c[:2] == ["run", "deploy"] for c in cloud.calls))
+
     def test_untrusted_service_url_never_receives_public_policy(self):
         cloud = DeploymentModel()
         cloud.url = "https://unexpected.example"
