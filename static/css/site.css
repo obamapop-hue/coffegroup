@@ -137,3 +137,9 @@ h1 { margin: 0; font-size: calc(clamp(42px, 4.8vw, 62px) + var(--font-step)); li
   .site-footer { min-height: 90px; gap: 8px; flex-wrap: wrap; align-content: center; }.footer-access { gap: 9px; font-size: calc(10px + var(--font-step)); }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
+/* Persistent completion notices use the site's typography and brand color. */
+.order-notifications { border: 1px solid var(--accent, #ce2b25); border-radius: 16px; padding: 16px; margin: 0 0 24px; background: #fff; }
+.order-notification { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 0; }
+.order-notification p { flex: 1 1 220px; margin: 0; font-weight: 600; }
+.order-notification a, .order-notification button { color: #ce2b25; font: inherit; font-weight: 600; }
+.order-notification button { background: #fff; border: 1px solid #ce2b25; border-radius: 8px; padding: 8px 12px; cursor: pointer; }

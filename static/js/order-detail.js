@@ -63,7 +63,7 @@
       }
       if (!response.ok) throw new Error('status unavailable');
       const data = await response.json();
-      if (data.status !== 'pending') { window.location.reload(); return; }
+      if (data.status !== panel.dataset.initialStatus) { window.location.reload(); return; }
       feedback.textContent = '';
     } catch { feedback.textContent = '상태를 다시 확인하고 있어요. 연결이 복구되면 자동 갱신돼요.'; }
     finally { busy = false; if (!stopped) timer = setTimeout(check, 5000); }

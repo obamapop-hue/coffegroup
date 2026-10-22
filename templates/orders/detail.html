@@ -7,11 +7,11 @@
 </div>{% endblock %}
 {% block dashboard_content %}
 {% if room.status == 'closed' %}<p class="order-note">참여가 마감된 주문서예요.</p>{% elif room.status == 'expired' %}<p class="order-note">자동 폐기된 주문서예요.</p>{% elif room.status == 'deleted' %}<p class="order-note">삭제된 주문서예요.</p>{% endif %}
-{% if final_order %}<section class="dispatch-notice" aria-label="주문 처리 안내" {% if room.status == 'pending' %}data-order-status data-status-url="{% url 'orders:state' room.pk %}"{% endif %}>
+{% if final_order %}<section class="dispatch-notice" aria-label="주문 처리 안내" {% if room.status == 'pending' or room.status == 'accepted' %}data-order-status data-initial-status="{{ room.status }}" data-status-url="{% url 'orders:state' room.pk %}"{% endif %}>
   {% if room.status == 'pending' %}<strong>카페의 주문 수락을 기다리고 있어요.</strong><p>{{ final_order.respond_by|date:"H:i:s" }}까지 수락하지 않으면 자동으로 거절돼요.</p><p class="order-note" data-status-feedback aria-live="polite"></p>
   {% elif room.status == 'rejected' %}<strong>주문 거절 · {{ room.rejection_reason }}</strong><p>{{ room.resolved_at|date:"m.d H:i" }} 처리</p>
   {% elif room.status == 'cancelled' %}<strong>취소된 주문이에요.</strong><p>{{ room.resolved_at|date:"m.d H:i" }} 취소</p>
-  {% elif room.status == 'accepted' %}<strong>카페가 주문을 수락했어요.</strong><p>{{ room.ready_at|date:"m.d H:i" }} 완료 예정</p>{% endif %}
+  {% elif room.status == 'accepted' %}<strong>카페가 주문을 수락했어요.</strong><p>{{ room.ready_at|date:"m.d H:i" }} 완료 예정</p><p class="order-note" data-status-feedback aria-live="polite"></p>{% elif room.status == 'completed' %}<strong>메뉴가 모두 준비됐어요. 픽업해 주세요.</strong><p>{{ room.completed_at|date:"m.d H:i" }} 메뉴 완료</p>{% endif %}
   <p class="order-note">전송: {{ final_order.sent_at|date:"m.d H:i:s" }} · 전송 후에는 주문 내용을 수정할 수 없어요.</p>
   {% if can_cancel %}<form action="{% url 'orders:cancel' room.pk %}" method="post" data-confirm="카페가 수락하기 전 주문을 취소할까요?">{% csrf_token %}<button class="text-button" type="submit">주문 취소</button></form>{% endif %}
 </section>{% endif %}

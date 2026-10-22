@@ -7,11 +7,12 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, Max
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from cafes.models import Cafe
 
-from .models import FinalOrder, Room, RoomEvent
+from .models import FinalOrder, OrderNotification, Room, RoomEvent
 from .services import expire_due_rooms, expire_locked
 
 
@@ -71,6 +72,26 @@ def decide_order(*, user, room_id, action, ready_at=None, reason=""):
     return True
 
 
+@transaction.atomic
+def complete_order(*, user, room_id):
+    room = Room.objects.select_for_update().get(pk=room_id)
+    cafe = Cafe.objects.select_for_update().get(pk=room.cafe_id)
+    if not user.is_authenticated or not user.is_active or cafe.seller_id != user.pk:
+        raise PermissionDenied
+    if room.status != Room.Status.ACCEPTED:
+        return False
+    if not cafe.is_open:
+        raise ValidationError("판매자로 로그인해 영업을 시작한 뒤 처리해 주세요.")
+    now = timezone.now()
+    room.status = Room.Status.COMPLETED
+    room.completed_at = now
+    room.save(update_fields=["status", "completed_at"])
+    RoomEvent.objects.create(room=room, action=RoomEvent.Action.COMPLETED, created_at=now)
+    if room.organizer_id:
+        OrderNotification.objects.create(room=room, recipient_id=room.organizer_id, created_at=now)
+    return True
+
+
 def seller_version(cafe):
     stats = RoomEvent.objects.filter(
         room__cafe_id=cafe.pk, room__final_order__isnull=False
@@ -94,6 +115,7 @@ def seller_order(final):
         "status_label": room.get_status_display(),
         "resolved_at": room.resolved_at,
         "ready_at": room.ready_at,
+        "completed_at": room.completed_at,
         "rejection_reason": room.rejection_reason,
         "items": [
             {
@@ -126,9 +148,11 @@ def seller_context(*, user, page=1, accepted_page=1):
     version = seller_version(cafe)
     orders = FinalOrder.objects.filter(room__cafe=cafe).select_related("room")
     history = Paginator(
-        orders.filter(room__status__in=[Room.Status.REJECTED, Room.Status.CANCELLED]).order_by(
-            "-room__resolved_at", "-pk"
-        ),
+        orders.filter(
+            room__status__in=[Room.Status.REJECTED, Room.Status.CANCELLED, Room.Status.COMPLETED]
+        )
+        .annotate(processed_at=Coalesce("room__completed_at", "room__resolved_at"))
+        .order_by("-processed_at", "-pk"),
         20,
     ).get_page(page)
     history.object_list = [seller_order(order) for order in history.object_list]

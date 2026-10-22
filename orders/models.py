@@ -20,6 +20,7 @@ class Room(models.Model):
         REJECTED = "rejected", "주문 거절"
         CANCELLED = "cancelled", "주문 취소"
         ACCEPTED = "accepted", "주문 수락"
+        COMPLETED = "completed", "메뉴 완료"
 
     organizer = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="rooms"
@@ -33,6 +34,7 @@ class Room(models.Model):
     expires_at = models.DateTimeField()
     resolved_at = models.DateTimeField(null=True)
     ready_at = models.DateTimeField(null=True)
+    completed_at = models.DateTimeField(null=True)
     rejection_reason = models.CharField(max_length=30, blank=True, default="", db_default="")
 
     class Meta:
@@ -49,7 +51,8 @@ class Room(models.Model):
             models.CheckConstraint(
                 condition=(
                     models.Q(
-                        status__in=["accepted", "rejected", "cancelled"], resolved_at__isnull=False
+                        status__in=["accepted", "completed", "rejected", "cancelled"],
+                        resolved_at__isnull=False,
                     )
                     | models.Q(
                         status__in=["open", "closed", "expired", "deleted", "pending"],
@@ -67,8 +70,11 @@ class Room(models.Model):
             ),
             models.CheckConstraint(
                 condition=(
-                    models.Q(status="accepted", ready_at__isnull=False)
-                    | (~models.Q(status="accepted") & models.Q(ready_at__isnull=True))
+                    models.Q(status__in=["accepted", "completed"], ready_at__isnull=False)
+                    | (
+                        ~models.Q(status__in=["accepted", "completed"])
+                        & models.Q(ready_at__isnull=True)
+                    )
                 ),
                 name="accepted_room_has_ready_time",
             ),
@@ -76,6 +82,18 @@ class Room(models.Model):
                 condition=models.Q(ready_at__isnull=True)
                 | models.Q(ready_at__gt=models.F("resolved_at")),
                 name="ready_time_after_acceptance",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(status="completed", completed_at__isnull=False)
+                    | (~models.Q(status="completed") & models.Q(completed_at__isnull=True))
+                ),
+                name="completed_room_has_completion_time",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(completed_at__isnull=True)
+                | models.Q(completed_at__gte=models.F("resolved_at")),
+                name="completion_after_acceptance",
             ),
         ]
 
@@ -91,6 +109,7 @@ class RoomEvent(models.Model):
         TIMED_OUT = "timed_out", "주문 거절 · 5분 미응답"
         ACCEPTED = "accepted", "판매자 주문 수락"
         SELLER_REJECTED = "seller_rejected", "판매자 주문 거절"
+        COMPLETED = "completed", "판매자 메뉴 완료"
 
     room = models.ForeignKey(Room, on_delete=models.PROTECT, related_name="events")
     action = models.CharField(max_length=20, choices=Action)
@@ -101,6 +120,19 @@ class RoomEvent(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["room", "action"], name="one_room_event_per_action")
         ]
+
+
+class OrderNotification(models.Model):
+    """A durable, recipient-scoped completion notice; read state is separate from order history."""
+
+    room = models.OneToOneField(Room, on_delete=models.CASCADE, related_name="completion_notice")
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+    read_at = models.DateTimeField(null=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        indexes = [models.Index(fields=["recipient", "read_at", "-created_at"])]
 
 
 class Submission(models.Model):

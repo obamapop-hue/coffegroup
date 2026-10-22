@@ -10,7 +10,13 @@ from cafes.models import Cafe
 
 from .forms import SellerAcceptForm, SellerRejectForm
 from .models import Room
-from .selling import decide_order, ready_time_choices, seller_context, seller_version
+from .selling import (
+    complete_order,
+    decide_order,
+    ready_time_choices,
+    seller_context,
+    seller_version,
+)
 from .services import expire_due_rooms
 
 
@@ -94,3 +100,20 @@ def accept(request, room_id):
 @role_required("seller")
 def reject(request, room_id):
     return decision(request, room_id, "reject")
+
+
+@never_cache
+@require_POST
+@role_required("seller")
+def complete(request, room_id):
+    get_object_or_404(Room, pk=room_id, cafe__seller=request.user, final_order__isnull=False)
+    try:
+        changed = complete_order(user=request.user, room_id=room_id)
+    except ValidationError as error:
+        messages.error(request, error.messages[0])
+    else:
+        if changed:
+            messages.success(request, "메뉴 완료를 처리했어요. 총무님에게 완료 알림을 보냈어요.")
+        else:
+            messages.info(request, "이미 완료되었거나 접수한 주문이 아니에요.")
+    return redirect("accounts:seller")

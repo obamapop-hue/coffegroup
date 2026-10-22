@@ -1,12 +1,15 @@
 from django.urls import path
 
-from . import seller_views, views
+from . import notification_views, seller_views, views
 
 app_name = "orders"
 urlpatterns = [
+    path("notifications/", notification_views.feed, name="notifications"),
+    path("notifications/<int:notice_id>/read/", notification_views.read, name="notification-read"),
     path("seller/feed/", seller_views.feed, name="seller-feed"),
     path("seller/<int:room_id>/accept/", seller_views.accept, name="seller-accept"),
     path("seller/<int:room_id>/reject/", seller_views.reject, name="seller-reject"),
+    path("seller/<int:room_id>/complete/", seller_views.complete, name="seller-complete"),
     path("create/<int:cafe_id>/", views.create, name="create"),
     path("<int:room_id>/", views.detail, name="detail"),
     path("<int:room_id>/delete/", views.delete, name="delete"),

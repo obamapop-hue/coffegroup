@@ -249,6 +249,7 @@ class SellingTests(SellingFixture, TestCase):
                 "status_label",
                 "resolved_at",
                 "ready_at",
+                "completed_at",
                 "rejection_reason",
                 "items",
             },
