@@ -161,3 +161,27 @@ DB, 로그인 Secret은 바꾸지 않는다. 기존 사용자 데이터 가져�
 `Railway Platform Outage` (QH8L8B3E)를 반환했다. 원본 비밀값이나 DB 데이터를
 조회·출력하지 않았다. 기존 데이터를 보존하려면 사용자 콘솔에서 원본 프로젝트와
 Postgres 서비스 접근이 가능한지 확인해 백업 확보 경로를 정해야 한다.
+
+## 사용자 결정 — 원본 테스트 데이터 이전 생략
+
+사용자는 기존 데이터가 모두 테스트용이므로 보존할 필요가 없고 다시 입력하겠다고
+답했다. 원본 DB 백업·복원과 기존 Django 비밀키 전달을 생략한다. Railway API
+접근 거부는 이제 이 작업의 차단 요인이 아니다. 기존 데이터를 지우거나 Railway를
+종료한 것은 아니며 원본 데이터 이전을 성공했다고 보고하지 않는다.
+
+Google에 생성한 DB와 별도 서명 키를 사용한다. 카카오 앱은 기존 영차 앱을
+재사용한다. 신규 Google 계정의 연결 코드와 운영자·판매자 권한은 다시 확인한다.
+이전 Railway 연결 코드 `ec796276-bd4e-461c-bca3-c9a01fcec831`는 Google의
+현재 계정 코드로 가정하지 않는다. 첫 가입자를 자동 운영자로 지정하지 않는다.
+카페·메뉴·옵션은 사용자가 새로 등록한다.
+
+다음 사용자 작업은 기존 카카오 앱의 로그인용 REST API 키 상세에 다음 로그인
+Redirect URI를 추가하는 것이다. Secret 값을 채팅으로 요청하지 않는다.
+
+`https://yeongcha-test-t7e4i53n5q-du.a.run.app/accounts/kakao/login/callback/`
+
+등록 후 카카오 REST API 키와 카카오 로그인용 Client Secret을 Secret Manager에
+안전하게 저장하고 런타임 계정에 해당 비밀값 접근만 허용한다. 서버 변수 이름은
+사용자 결정인 `KAKAO_RESET_API_KEY`를 유지하고 값은 실제 REST API 키를 사용한다.
+Secret 연결이 준비된 뒤 `KAKAO_LOGIN_ENABLED=True`로 바꾼다. 이 파일 기록 시점에는
+Redirect URI 등록·키 전달·실제 왕복 로그인·신규 운영자 연결은 아직 확인 전이다.

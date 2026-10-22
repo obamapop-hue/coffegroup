@@ -1,5 +1,27 @@
 # 영차 카카오 로그인 연결 가이드
 
+## Google Cloud 새 환경에서 이어서 연결하기
+
+기존 영차 카카오 앱은 재사용한다. 사용자가 기존 테스트 데이터 가져오기를
+생략하기로 해 Google의 계정·권한·카페·메뉴는 새로 등록한다.
+
+- 새 사이트: `https://yeongcha-test-t7e4i53n5q-du.a.run.app`
+- 로그인 Redirect URI:
+  `https://yeongcha-test-t7e4i53n5q-du.a.run.app/accounts/kakao/login/callback/`
+- 기존 앱 → 플랫폼 키 → **REST API 키 상세** → **카카오 로그인 리다이렉트 URI**에
+  위 전체 주소를 추가한다. 키의 관리용 이름과 실제 키 문자열은 구분한다.
+- 실제 REST API 키와 카카오 로그인용 Client Secret은 Google Secret Manager로
+  전달한다. 채팅·스크린샷·Git에 비밀값을 붙여넣지 않는다. 비즈니스 인증용
+  Client Secret은 사용하지 않는다.
+- Cloud Run 환경변수는 `KAKAO_RESET_API_KEY`, `KAKAO_CLIENT_SECRET`,
+  `KAKAO_LOGIN_ENABLED`를 사용한다. 앞의 두 개는 Secret Manager의 비밀값을
+  참조하고, 활성화 값 `True`는 직접 설정하는 켜기 값이다.
+- 실제 로그인 후 새 Google 계정 연결 코드를 확인해 해당 본인 계정에만
+  운영자 권한을 부여한다. 카페 등록 후 같은 계정을 판매자로 연결할 수 있다.
+
+이하 Railway 단계의 설정 기록은 과거 안내다. Google 작업은 Cloud Run과
+Secret Manager에서 수행하며 Railway 변수 등록을 다시 요구하지 않는다.
+
 2단계 테스트용 가이드입니다. 카카오 연동은 로그인만 사용합니다. 알림톡·비즈니스 채널·카카오페이 설정은 필요하지 않습니다.
 
 ## 1. 개발자 앱 등록

@@ -3,7 +3,8 @@
 **운영 플랫폼 이전 상태:** Google Cloud 테스트 배포가 성공했습니다.
 사용자가 실행한 배포 스크립트에서 실제 DB 쓰기/읽기와 공개 HTTPS 검사를
 통과했습니다. 테스트 주소는 https://yeongcha-test-t7e4i53n5q-du.a.run.app 입니다.
-기존 Railway 데이터·카카오 로그인 연결과 최종 전환은 아직 남아 있습니다.
+기존 Railway 데이터는 사용자가 모두 테스트용이라고 확인해 가져오기를 생략합니다.
+카카오 로그인 연결·새 운영자 계정 설정과 최종 검수는 아직 남아 있습니다.
 [이전 계획](docs/GOOGLE_CLOUD_MIGRATION.md)과 [실행 기록](docs/GOOGLE_CLOUD_PROGRESS.md)을
 참고하세요.
 
