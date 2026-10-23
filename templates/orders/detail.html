@@ -16,8 +16,8 @@
   {% if can_cancel %}<form action="{% url 'orders:cancel' room.pk %}" method="post" data-confirm="카페가 수락하기 전 주문을 취소할까요?">{% csrf_token %}<button class="text-button" type="submit">주문 취소</button></form>{% endif %}
 </section>{% endif %}
 <section class="account-panel collection-panel">
-<div class="panel-heading collection-heading"><h2>[{{ room.created_at|date:"H:i" }}] 주문서</h2><input id="share-link" type="hidden" value="{{ share_url }}"><button class="order-copy-button" type="button" data-copy-share-link aria-label="참여 링크 복사" hidden>링크 복사</button></div>
-<p class="share-copy-status" data-share-copy-status role="status" aria-live="polite"></p>
+<div class="panel-heading collection-heading"><h2>[{{ room.created_at|date:"H:i" }}] 주문서</h2>{% if room.status != 'completed' %}<input id="share-link" type="hidden" value="{{ share_url }}"><button class="order-copy-button" type="button" data-copy-share-link aria-label="참여 링크 복사" hidden>링크 복사</button>{% endif %}</div>
+{% if room.status != 'completed' %}<p class="share-copy-status" data-share-copy-status role="status" aria-live="polite"></p>{% endif %}
 <div class="collection-total"><div class="collection-quantity"><span>총 {{ total_quantity }}잔</span><a class="collection-refresh" href="{% url 'orders:detail' room.pk %}" aria-label="주문 새로고침" title="새로고침"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11a9 9 0 0 1 15.4-5.4L21 8M21 3v5h-5M21 13a9 9 0 0 1-15.4 5.4L3 16M3 21v-5h5"/></svg></a></div><strong>{{ total_amount }}원</strong></div>
 {% if can_edit %}<a class="primary-button order-add-link" href="{% url 'orders:order-add' room.pk %}">내 주문 추가</a>{% endif %}
 {% if submissions %}<table class="collection-table" aria-label="참여자별 주문 목록">
