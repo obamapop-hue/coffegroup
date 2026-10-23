@@ -8,22 +8,22 @@ from django.views.decorators.http import require_GET, require_POST
 from accounts.views import role_required
 
 from .models import OrderNotification
+from .notifications import notification_message
+from .services import expire_due_rooms
 
 
 @never_cache
 @require_GET
 @role_required("organizer")
 def feed(request):
+    expire_due_rooms()
     notices = OrderNotification.objects.filter(recipient=request.user, read_at__isnull=True)
     return JsonResponse(
         {
             "notifications": [
                 {
                     "id": notice.pk,
-                    "message": (
-                        f"{notice.room.cafe_snapshot['name']}의 메뉴가 모두 준비됐어요. "
-                        "픽업해 주세요."
-                    ),
+                    "message": notification_message(notice),
                     "order_url": reverse("orders:detail", args=[notice.room_id]),
                     "read_url": reverse("orders:notification-read", args=[notice.pk]),
                     "created_at": notice.created_at.isoformat(),

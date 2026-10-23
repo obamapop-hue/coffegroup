@@ -13,6 +13,7 @@ from django.utils import timezone
 from cafes.models import Cafe
 
 from .models import FinalOrder, OrderNotification, Room, RoomEvent
+from .notifications import notify_organizer
 from .services import expire_due_rooms, expire_locked
 
 
@@ -69,6 +70,7 @@ def decide_order(*, user, room_id, action, ready_at=None, reason=""):
     room.resolved_at = now
     room.save(update_fields=["status", "ready_at", "resolved_at", "rejection_reason"])
     RoomEvent.objects.create(room=room, action=event, created_at=now)
+    notify_organizer(room, room.status, now)
     return True
 
 
@@ -87,8 +89,7 @@ def complete_order(*, user, room_id):
     room.completed_at = now
     room.save(update_fields=["status", "completed_at"])
     RoomEvent.objects.create(room=room, action=RoomEvent.Action.COMPLETED, created_at=now)
-    if room.organizer_id:
-        OrderNotification.objects.create(room=room, recipient_id=room.organizer_id, created_at=now)
+    notify_organizer(room, OrderNotification.Kind.COMPLETED, now)
     return True
 
 

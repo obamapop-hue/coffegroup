@@ -123,16 +123,28 @@ class RoomEvent(models.Model):
 
 
 class OrderNotification(models.Model):
-    """A durable, recipient-scoped completion notice; read state is separate from order history."""
+    """Durable recipient-scoped notices; read state stays separate from order history."""
 
-    room = models.OneToOneField(Room, on_delete=models.CASCADE, related_name="completion_notice")
+    class Kind(models.TextChoices):
+        ACCEPTED = "accepted", "주문 수락"
+        REJECTED = "rejected", "주문 거절"
+        COMPLETED = "completed", "메뉴 완료"
+        EXPIRED = "expired", "주문서 폐기"
+
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="notifications")
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    kind = models.CharField(
+        max_length=12, choices=Kind, default=Kind.COMPLETED, db_default=Kind.COMPLETED
+    )
     created_at = models.DateTimeField(default=timezone.now)
     read_at = models.DateTimeField(null=True)
 
     class Meta:
         ordering = ["-created_at", "-pk"]
         indexes = [models.Index(fields=["recipient", "read_at", "-created_at"])]
+        constraints = [
+            models.UniqueConstraint(fields=["room", "kind"], name="one_order_notice_per_kind")
+        ]
 
 
 class Submission(models.Model):

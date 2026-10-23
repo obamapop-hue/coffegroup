@@ -57,7 +57,7 @@ def feed(request):
     pending = list(
         Room.objects.filter(cafe=cafe, status=Room.Status.PENDING).values_list("pk", flat=True)
     )
-    return JsonResponse({"version": version, "pending": pending})
+    return JsonResponse({"version": version, "pending": pending, "is_open": cafe.is_open})
 
 
 def decision(request, room_id, action):

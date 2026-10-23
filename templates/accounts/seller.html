@@ -3,34 +3,22 @@
 {% block extra_styles %}<link rel="stylesheet" href="{% static 'css/selling.css' %}">{% endblock %}
 {% block dashboard_title %}{{ cafe.name }}{% endblock %}
 {% block dashboard_content %}
-<section class="account-panel">
+<section class="account-panel" data-seller-business>
   <div class="panel-heading"><h2>카페 영업 상태</h2><span class="status-chip {% if cafe.is_open %}is-open{% endif %}">{% if cafe.is_open %}영업중{% else %}영업종료{% endif %}</span></div>
   {% if cafe.is_open %}<p>판매자로 로그인해 영업이 시작됐어요. 영업을 마칠 때 로그아웃해 주세요.</p>{% else %}<p>판매자로 로그인하면 영업이 시작돼요.</p><form action="{% url 'accounts:start' 'seller' %}" method="post">{% csrf_token %}<button class="primary-button" type="submit">판매자로 로그인</button></form>{% endif %}
 </section>
-<div data-seller-dashboard data-feed-url="{% url 'orders:seller-feed' %}" data-version="{{ seller_version }}">
-  <div class="seller-update" data-seller-update role="status" aria-live="polite" hidden><span data-seller-feedback></span> <a href="{% url 'accounts:seller' %}">새로고침</a></div>
-  {% if decision_feedback %}<p class="seller-update" role="alert">{{ decision_feedback }}</p>{% endif %}
-  <section class="seller-queue" aria-labelledby="pending-title"><div class="panel-heading"><h2 id="pending-title">수락 대기 <span data-pending-count>{{ pending_orders|length }}</span></h2><a class="text-button" href="{% url 'accounts:seller' %}">새로고침</a></div>
-    {% for order in pending_orders %}<article class="account-panel seller-order" data-pending-order="{{ order.id }}">
-      <h3>{{ order.organizer_nickname }}님의 주문</h3><p class="seller-order-meta">{{ order.sent_at|date:"m.d H:i" }} 전송 · {{ order.respond_by|date:"H:i:s" }} 수락 마감</p>
-      {% include "orders/seller_summary.html" %}
-      <form class="seller-accept" action="{% url 'orders:seller-accept' order.id %}" method="post" data-seller-decision {% if order.accept_form.is_bound %}data-dirty="true"{% endif %}>{% csrf_token %}
-        {% if order.accept_form.errors %}<div class="seller-form-errors" role="alert">{{ order.accept_form.non_field_errors }}{{ order.accept_form.ready_at.errors }}</div>{% endif %}
-        <label for="{{ order.accept_form.ready_at.id_for_label }}">완료 예정시간 <span>5분 단위</span></label><div class="seller-accept-controls">{{ order.accept_form.ready_at }}<button class="primary-button" type="submit">주문 접수</button></div><p class="seller-order-meta">접수 후 완료 예정시간은 변경할 수 없어요.</p>
-      </form>
-      <details class="seller-reject" {% if order.reject_form.errors %}open{% endif %}><summary>주문 거절</summary><form action="{% url 'orders:seller-reject' order.id %}" method="post" data-seller-decision {% if order.reject_form.is_bound %}data-dirty="true"{% endif %}>{% csrf_token %}
-        {% if order.reject_form.errors %}<div class="seller-form-errors" role="alert">{{ order.reject_form.non_field_errors }}{{ order.reject_form.reason.errors }}</div>{% endif %}
-        <label for="{{ order.reject_form.reason.id_for_label }}">거절 사유 (30자 이내)</label><div class="seller-accept-controls">{{ order.reject_form.reason }}<button class="text-button" type="submit">거절하기</button></div>
-      </form></details>
-    </article>{% empty %}<div class="account-panel"><p>수락을 기다리는 주문이 없어요.</p></div>{% endfor %}
-  </section>
-  <section class="seller-queue" aria-labelledby="accepted-title"><h2 id="accepted-title">접수한 주문</h2>{% for order in accepted_orders %}<article class="account-panel seller-order" data-accepted-order="{{ order.id }}"><div class="panel-heading"><h3>{{ order.organizer_nickname }}님의 주문</h3><strong class="seller-ready">{{ order.ready_at|date:"m.d H:i" }} 완료 예정</strong></div><p class="seller-order-meta">{{ order.sent_at|date:"m.d H:i" }} 전송 · {{ order.resolved_at|date:"H:i" }} 접수</p>{% include "orders/seller_summary.html" %}<form action="{% url 'orders:seller-complete' order.id %}" method="post" data-seller-decision>{% csrf_token %}<button class="primary-button" type="submit">메뉴 완료</button></form></article>{% empty %}<div class="account-panel"><p>접수한 주문이 없어요.</p></div>{% endfor %}
-    {% if accepted_orders.has_other_pages %}<nav class="pagination" aria-label="접수 주문 페이지">{% if accepted_orders.has_previous %}<a href="?accepted_page={{ accepted_orders.previous_page_number }}&amp;page={{ order_history.number }}">이전</a>{% endif %}<span>{{ accepted_orders.number }} / {{ accepted_orders.paginator.num_pages }}</span>{% if accepted_orders.has_next %}<a href="?accepted_page={{ accepted_orders.next_page_number }}&amp;page={{ order_history.number }}">다음</a>{% endif %}</nav>{% endif %}
-  </section>
-  <details class="seller-history" {% if order_history.number > 1 %}open{% endif %}><summary>완료·거절·취소 내역</summary>{% for order in order_history %}<article class="account-panel seller-order" data-history-order="{{ order.id }}"><div class="panel-heading"><h3>{{ order.organizer_nickname }}님의 주문</h3><span>{{ order.status_label }}</span></div><p class="seller-order-meta">{{ order.sent_at|date:"m.d H:i" }} 전송 · {% if order.completed_at %}{{ order.completed_at|date:"m.d H:i" }} 완료{% else %}{{ order.resolved_at|date:"m.d H:i" }} 처리{% endif %}</p>{% if order.rejection_reason %}<p>거절 사유: {{ order.rejection_reason }}</p>{% endif %}{% include "orders/seller_summary.html" %}</article>{% empty %}<p>완료·거절·취소된 주문이 없어요.</p>{% endfor %}
-    {% if order_history.has_other_pages %}<nav class="pagination" aria-label="완료·거절·취소 주문 페이지">{% if order_history.has_previous %}<a href="?page={{ order_history.previous_page_number }}&amp;accepted_page={{ accepted_orders.number }}">이전</a>{% endif %}<span>{{ order_history.number }} / {{ order_history.paginator.num_pages }}</span>{% if order_history.has_next %}<a href="?page={{ order_history.next_page_number }}&amp;accepted_page={{ accepted_orders.number }}">다음</a>{% endif %}</nav>{% endif %}
-  </details>
-</div>
+<section class="account-panel seller-alerts" data-seller-alerts data-storage-key="yeongcha-alert-{{ request.user.pk }}-{{ cafe.pk }}" aria-labelledby="seller-alert-title">
+  <h2 id="seller-alert-title">주문 알림</h2>
+  <p data-alert-status role="status" aria-live="polite">주문 알림을 켜 주세요.</p>
+  <div class="seller-alert-controls"><button class="primary-button" type="button" data-alert-enable>주문 알림 켜기</button><button class="text-button" type="button" data-alert-test>소리 테스트</button><button class="text-button" type="button" data-desktop-enable hidden>PC 알림 허용</button></div>
+  <p class="seller-alert-help">판매자 페이지를 켜 두고 소리가 들리는지 확인해 주세요. PC가 음소거되거나 절전 상태이면 알림을 놓칠 수 있어요.</p>
+  <p class="seller-alert-help" data-desktop-status role="status"></p>
+  <audio data-order-audio src="{% static 'audio/order-alert.wav' %}" preload="auto"></audio>
+  <noscript><p>자동 주문 알림을 사용하려면 브라우저에서 JavaScript를 켜 주세요.</p></noscript>
+</section>
+<div class="seller-queue-alert" data-queue-alert role="alert" hidden></div>
+<p class="seller-update" data-seller-action-feedback role="status" hidden></p>
+{% include "orders/seller_board.html" %}
 <section class="account-panel"><h2>메뉴 품절 관리</h2><p>품절 변경은 새 주문방부터 적용돼요.</p>{% for menu in menus %}<div class="menu-row"><span><strong>{{ menu.name }}</strong><br>{{ menu.price }}원 · {% if menu.is_available %}판매중{% else %}품절{% endif %}</span><form action="{% url 'cafes:stock' menu.pk %}" method="post">{% csrf_token %}<input type="hidden" name="available" value="{% if menu.is_available %}no{% else %}yes{% endif %}"><button class="text-button" type="submit">{% if menu.is_available %}품절 처리{% else %}판매 재개{% endif %}</button></form></div>{% empty %}<p>아직 등록된 메뉴가 없어요.</p>{% endfor %}</section>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/seller-orders.js' %}" defer></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/seller-alerts.js' %}" defer></script><script src="{% static 'js/seller-orders.js' %}" defer></script>{% endblock %}

@@ -38,7 +38,7 @@ class CompletionTests(SellingFixture, TestCase):
         self.assertNotEqual(before, seller_version(self.cafe))
         self.assertFalse(self.complete())
         self.assertEqual(self.room.events.filter(action="completed").count(), 1)
-        notice = OrderNotification.objects.get(room=self.room)
+        notice = OrderNotification.objects.get(room=self.room, kind="completed")
         self.assertEqual(notice.recipient, self.owner)
         self.assertIsNone(notice.read_at)
         self.assertFalse(cancel_order(user=self.owner, room_id=self.room.pk))
@@ -104,7 +104,7 @@ class CompletionTests(SellingFixture, TestCase):
         self.assertEqual(notice["order_url"], reverse("orders:detail", args=[self.room.pk]))
         # Merely opening the order must not consume the unread notice.
         self.client.get(notice["order_url"])
-        self.assertEqual(len(self.client.get(feed).json()["notifications"]), 1)
+        self.assertEqual(len(self.client.get(feed).json()["notifications"]), 2)
         self.assertEqual(self.seller_client().post(notice["read_url"]).status_code, 404)
         self.assertEqual(self.client.get(notice["read_url"]).status_code, 405)
         csrf = Client(enforce_csrf_checks=True)
@@ -112,8 +112,10 @@ class CompletionTests(SellingFixture, TestCase):
         self.assertEqual(csrf.post(notice["read_url"]).status_code, 403)
         self.assertEqual(self.client.post(notice["read_url"]).status_code, 200)
         self.assertEqual(self.client.post(notice["read_url"]).status_code, 200)
-        self.assertEqual(self.client.get(feed).json()["notifications"], [])
-        self.assertIsNotNone(OrderNotification.objects.get(room=self.room).read_at)
+        self.assertEqual(len(self.client.get(feed).json()["notifications"]), 1)
+        self.assertIsNotNone(
+            OrderNotification.objects.get(room=self.room, kind="completed").read_at
+        )
         self.assertEqual(self.room.events.filter(action="completed").count(), 1)
 
     def test_notification_failure_rolls_back_completion_and_history(self):
@@ -164,5 +166,7 @@ class CompletionConcurrencyTests(SellingFixture, TransactionTestCase):
 
         results = DispatchConcurrencyTests.race(self, [action, action])
         self.assertEqual(sum(results), 1)
-        self.assertEqual(OrderNotification.objects.filter(room=self.room).count(), 1)
+        self.assertEqual(
+            OrderNotification.objects.filter(room=self.room, kind="completed").count(), 1
+        )
         self.assertEqual(self.room.events.filter(action="completed").count(), 1)

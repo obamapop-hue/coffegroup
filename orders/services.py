@@ -7,7 +7,8 @@ from django.utils import timezone
 from cafes.catalog import snapshot_menu
 from cafes.models import Cafe
 
-from .models import Room, RoomEvent
+from .models import OrderNotification, Room, RoomEvent
+from .notifications import notify_organizer
 
 UNSENT = (Room.Status.OPEN, Room.Status.CLOSED)
 ACTIVE = (*UNSENT, Room.Status.PENDING, Room.Status.ACCEPTED)
@@ -41,6 +42,7 @@ def expire_locked(room, now):
         room.status = Room.Status.EXPIRED
         room.save(update_fields=["status"])
         RoomEvent.objects.create(room=room, action=RoomEvent.Action.EXPIRED, created_at=now)
+        notify_organizer(room, OrderNotification.Kind.EXPIRED, now)
         return True
     if room.status == Room.Status.PENDING and room.final_order.respond_by <= now:
         room.status = Room.Status.REJECTED
@@ -48,6 +50,7 @@ def expire_locked(room, now):
         room.resolved_at = now
         room.save(update_fields=["status", "rejection_reason", "resolved_at"])
         RoomEvent.objects.create(room=room, action=RoomEvent.Action.TIMED_OUT, created_at=now)
+        notify_organizer(room, OrderNotification.Kind.REJECTED, now)
         return True
     return False
 

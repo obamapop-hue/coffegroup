@@ -258,7 +258,7 @@ class SellingTests(SellingFixture, TestCase):
         self.assertEqual(data["items"][0]["options"][0]["group"], self.temp.name)
         self.assertEqual(set(data["items"][0]["options"][0]), {"group", "name", "quantity"})
         feed = client.get(reverse("orders:seller-feed"))
-        self.assertEqual(set(feed.json()), {"version", "pending"})
+        self.assertEqual(set(feed.json()), {"version", "pending", "is_open"})
         self.assertEqual(feed.json()["pending"], [self.room.pk])
         self.assertNotIn(hidden.room_id, feed.json()["pending"])
         self.assertIn("no-store", feed.headers["Cache-Control"])
