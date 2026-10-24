@@ -1,0 +1,16 @@
+{% extends "accounts/dashboard.html" %}
+{% block title %}문의하기 · 영차{% endblock %}
+{% block dashboard_title %}문의하기{% endblock %}
+{% block dashboard_content %}
+<section class="account-panel">
+  <h2>무엇을 도와드릴까요?</h2>
+  <p>주문 문의라면 카페 이름과 주문 시각을 함께 적어 주세요. 답변은 이곳의 내 문의에서 확인할 수 있어요.</p>
+  {% if not request.user.is_authenticated %}<p>가입 없이 문의할 수 있어요. 비회원 문의는 작성한 브라우저에서 확인해 주세요. 쿠키를 지우거나 비공개 창을 닫으면 다시 확인할 수 없어요. 로그인한 뒤 문의하면 다른 기기에서도 확인할 수 있어요.</p>{% endif %}
+  <form method="post" class="stack-form" data-support-form>{% csrf_token %}{{ form.as_p }}<button class="primary-button" type="submit">문의 접수</button></form>
+</section>
+<section class="account-panel">
+  <h2>내 문의</h2>
+  {% for ticket in tickets %}<a class="history-item" href="{% url 'support:detail' ticket.pk %}"><span><strong>{{ ticket.subject }}</strong><br><time>{{ ticket.updated_at|date:"Y.m.d H:i" }}</time></span><span class="status-chip">{{ ticket.get_status_display }}</span></a>{% empty %}<p>접수한 문의가 없어요.</p>{% endfor %}
+  {% include "support/pagination.html" %}
+</section>
+{% endblock %}

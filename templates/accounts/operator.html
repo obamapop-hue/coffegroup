@@ -4,6 +4,7 @@
 {% block extra_styles %}<link rel="stylesheet" href="{% static 'css/sheets.css' %}">{% endblock %}
 {% block dashboard_title %}카페·판매자 관리{% endblock %}
 {% block dashboard_content %}
+<p><a class="primary-button" href="{% url 'support:operator-inbox' %}">사용자 문의 확인{% if support_waiting_count %} · {{ support_waiting_count }}건 대기{% endif %}</a></p>
 <p class="sheet-intro">카페 정보와 판매자 연결을 표에서 한 번에 관리하세요. 연결코드를 비우면 판매자 연결이 해제돼요.</p>
 {% if form.errors %}<div class="sheet-error-summary" role="alert">{{ form.errors }}</div>{% endif %}
 {% url 'cafes:sheet-cafes' as sheet_url %}

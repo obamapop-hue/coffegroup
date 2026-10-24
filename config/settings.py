@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "cafes",
     "orders",
     "core",
+    "support",
 ]
 
 MIDDLEWARE = [

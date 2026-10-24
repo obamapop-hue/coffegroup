@@ -1,0 +1,9 @@
+{% extends "accounts/dashboard.html" %}
+{% block title %}문의·답변 · 영차{% endblock %}
+{% block dashboard_title %}{{ ticket.subject }}{% endblock %}
+{% block dashboard_content %}
+<p><span class="status-chip">{{ ticket.get_status_display }}</span></p>
+{% for message in thread %}<section class="account-panel"><h2>{% if message.sender == 'operator' %}영차 답변{% else %}{% if operator_view %}사용자 문의{% else %}내 문의{% endif %}{% endif %}</h2><p>{{ message.body|linebreaksbr }}</p><p><time>{{ message.created_at|date:"Y.m.d H:i" }}</time></p></section>{% endfor %}
+<section class="account-panel"><h2>{% if operator_view %}답변 작성{% else %}추가 문의{% endif %}</h2><form method="post" class="stack-form" data-support-form>{% csrf_token %}{{ form.as_p }}<button class="primary-button" type="submit">{% if operator_view %}답변 등록{% else %}추가 문의 등록{% endif %}</button></form></section>
+<a class="text-button" href="{% if operator_view %}{% url 'support:operator-inbox' %}{% else %}{% url 'support:inbox' %}{% endif %}">문의 목록</a>
+{% endblock %}

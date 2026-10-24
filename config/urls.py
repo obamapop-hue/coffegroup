@@ -14,6 +14,7 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("cafes/", include("cafes.urls")),
     path("orders/", include("orders.urls")),
+    path("help/", include("support.urls")),
     path("join/<slug:token>/", order_views.join, name="join"),
     path("join/<slug:token>/submitted/", order_views.submitted, name="join-submitted"),
     path("accounts/login/", account_views.entry, {"role": "organizer"}, name="account_login"),

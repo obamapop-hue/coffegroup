@@ -2,6 +2,7 @@
 {% load static %}
 {% block dashboard_title %}개인정보{% endblock %}
 {% block dashboard_content %}
+<p><a class="text-button" href="{% url 'support:inbox' %}">내 문의·답변 확인</a></p>
 <section class="account-panel">
   <h2>내 정보</h2>
   <dl class="profile-info"><dt>닉네임</dt><dd>{{ request.user.display_name }}</dd><dt>가입일</dt><dd>{{ request.user.date_joined|date:"Y년 n월 j일" }}</dd></dl>

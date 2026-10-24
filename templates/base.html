@@ -55,7 +55,8 @@
       {% block content %}{% endblock %}
       <footer class="site-footer">
         <span class="footer-brand">영차</span>
-        <div class="footer-access" aria-label="관리 화면">
+        <div class="footer-access" aria-label="사이트 메뉴">
+          <a href="{% url 'support:inbox' %}">문의하기</a>
           {% if request.user.is_authenticated %}
             {% if request.resolver_match.url_name != 'organizer' %}<a href="{% url 'accounts:organizer' %}">내 주문으로 이동</a>{% endif %}
             {% if can_access_seller and request.resolver_match.url_name != 'seller' %}

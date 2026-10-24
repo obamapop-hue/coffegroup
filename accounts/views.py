@@ -139,6 +139,8 @@ def seller(request):
 @require_GET
 @role_required("operator")
 def operator(request):
+    from support.models import Ticket
+
     expire_due_rooms()
     return render(
         request,
@@ -148,6 +150,7 @@ def operator(request):
             "form": CafeForm(),
             "sheet_data": cafe_state(),
             "recent_rooms": Room.objects.all()[:20],
+            "support_waiting_count": Ticket.objects.filter(status=Ticket.Status.WAITING).count(),
         },
     )
 
