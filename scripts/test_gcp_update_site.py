@@ -14,9 +14,12 @@ class UpdateCloud(GoogleCloud):
         self.migration_ok = True
         self.build_status = "SUCCESS"
         self.owned = True
+        self.probe_flags_supported = True
 
     def request(self, args, **kwargs):
         self.calls.append(args)
+        if args == ["run", "services", "update", "--help"]:
+            return "--startup-probe --liveness-probe" if self.probe_flags_supported else ""
         if args[:3] in (["run", "services", "list"], ["run", "jobs", "list"]):
             name = SERVICE if args[1] == "services" else JOB
             return [
@@ -66,21 +69,27 @@ class UpdateSiteTests(unittest.TestCase):
         self.update(cloud)
         job = next(c for c in cloud.calls if c[:3] == ["run", "jobs", "update"])
         execute = next(c for c in cloud.calls if c[:3] == ["run", "jobs", "execute"])
-        web = next(c for c in cloud.calls if c[:3] == ["run", "services", "update"])
+        web = next(c for c in cloud.calls if c[:4] == ["run", "services", "update", SERVICE])
         self.assertLess(cloud.calls.index(job), cloud.calls.index(execute))
         self.assertLess(cloud.calls.index(execute), cloud.calls.index(web))
-        self.assertTrue(web[-1].endswith("@sha256:" + "a" * 64))
+        self.assertTrue(any(c.endswith("@sha256:" + "a" * 64) for c in web))
         self.assertEqual(self.checked, ["https://yeongcha-test-example.run.app"])
-        for call in (job, web):
-            self.assertEqual(len(call), 6)
-            self.assertFalse(any("env-vars" in value or "secrets" in value for value in call))
+        self.assertEqual(len(job), 6)
+        self.assertFalse(any("secrets" in value or "set-env-vars" in value for value in web))
+        self.assertIn("--update-env-vars=REQUIRE_DEADLINE_WORKER=True", web)
+        self.assertTrue(
+            any(c.startswith("--startup-probe=httpGet.path=/health/ready/") for c in web)
+        )
+        self.assertTrue(
+            any(c.startswith("--liveness-probe=httpGet.path=/health/ready/") for c in web)
+        )
 
     def test_failed_migrations_leave_current_web_image_untouched(self):
         cloud = UpdateCloud()
         cloud.migration_ok = False
         with self.assertRaises(SetupError):
             self.update(cloud)
-        self.assertFalse(any(c[:3] == ["run", "services", "update"] for c in cloud.calls))
+        self.assertFalse(any(c[:4] == ["run", "services", "update", SERVICE] for c in cloud.calls))
 
     def test_failed_build_never_runs_migrations(self):
         cloud = UpdateCloud()
@@ -92,6 +101,13 @@ class UpdateSiteTests(unittest.TestCase):
     def test_other_service_label_stops_before_build(self):
         cloud = UpdateCloud()
         cloud.owned = False
+        with self.assertRaises(SetupError):
+            self.update(cloud)
+        self.assertFalse(any(c[:2] == ["builds", "submit"] for c in cloud.calls))
+
+    def test_unsupported_health_flags_stop_before_any_build_or_mutation(self):
+        cloud = UpdateCloud()
+        cloud.probe_flags_supported = False
         with self.assertRaises(SetupError):
             self.update(cloud)
         self.assertFalse(any(c[:2] == ["builds", "submit"] for c in cloud.calls))

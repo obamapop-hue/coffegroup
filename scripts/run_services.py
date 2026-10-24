@@ -1,5 +1,7 @@
-"""Run the web server and deadline worker as one supervised Railway service."""
+"""Run the web server and deadline worker as one supervised hosted service."""
 
+import os
+import secrets
 import signal
 import subprocess
 import sys
@@ -38,6 +40,8 @@ def supervise(commands):
 
 
 if __name__ == "__main__":
+    # Shared by this container's web/worker only; another instance cannot mask a stuck worker.
+    os.environ["YEONGCHA_RUNTIME_INSTANCE"] = secrets.token_hex(16)
     port = int(sys.argv[1])
     web = [
         sys.executable,

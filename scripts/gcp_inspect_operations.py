@@ -21,7 +21,12 @@ def inspect_operations(cloud, *, site_check=check_site):
     if len(containers) != 1:
         raise SetupError("Expected the existing single-container web service.")
     container = containers[0]
-    safe_env_names = {"DJANGO_DEBUG", "DJANGO_TRUST_PROXY", "KAKAO_LOGIN_ENABLED"}
+    safe_env_names = {
+        "DJANGO_DEBUG",
+        "DJANGO_TRUST_PROXY",
+        "KAKAO_LOGIN_ENABLED",
+        "REQUIRE_DEADLINE_WORKER",
+    }
     env_rows = container.get("env", [])
     safe_env = {row["name"]: row.get("value") for row in env_rows if row["name"] in safe_env_names}
     secret_names = {
@@ -52,6 +57,8 @@ def inspect_operations(cloud, *, site_check=check_site):
             "max_instances": annotations.get("autoscaling.knative.dev/maxScale"),
             "cpu_throttling": annotations.get("run.googleapis.com/cpu-throttling", "true"),
             "resources": container.get("resources", {}).get("limits", {}),
+            "startup_probe_configured": bool(container.get("startupProbe")),
+            "liveness_probe_configured": bool(container.get("livenessProbe")),
             "runtime_account": spec.get("serviceAccountName"),
             "safe_environment_flags": safe_env,
             "secret_references_only": secret_names,

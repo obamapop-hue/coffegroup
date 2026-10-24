@@ -1,0 +1,13 @@
+{% load static %}
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="only light"><meta name="supported-color-schemes" content="light">
+<meta name="robots" content="noindex">
+<title>{% block title %}안내{% endblock %} · 영차</title>
+<link rel="icon" href="{% static 'images/favicon.png' %}" type="image/png">
+<link rel="stylesheet" href="{% static 'css/fonts.css' %}"><link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head><body><div class="page-shell">
+<header class="site-header"><a class="brand" href="{% url 'home' %}" aria-label="영차 홈"><span class="brand-mark" aria-hidden="true"><img src="{% static 'images/yeongcha-arm.png' %}" alt="" width="52" height="52"></span><span>영차</span></a></header>
+<main class="account-main" id="main"><section class="account-panel"><h1>{% block heading %}잠시 후 다시 확인해 주세요.{% endblock %}</h1>{% block message %}{% endblock %}</section></main>
+</div></body></html>

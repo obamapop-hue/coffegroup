@@ -22,6 +22,9 @@ def update_site(cloud, source, revision, *, report=print, site_check=check_site,
     if not verify_owned_resource(services, SERVICE) or not verify_owned_resource(jobs, JOB):
         raise SetupError("The existing test service and migration job are required.")
     service = cloud.request(["run", "services", "describe", SERVICE, region])
+    help_text = cloud.request(["run", "services", "update", "--help"], raw=True)
+    if not all(flag in help_text for flag in ("--startup-probe", "--liveness-probe")):
+        raise SetupError("The Cloud Shell gcloud command lacks the required health-check flags.")
     base_url = service.get("status", {}).get("url", "").rstrip("/")
     if not re.fullmatch(r"https://[a-z0-9.-]+\.run\.app", base_url):
         raise SetupError("The existing Google site address could not be verified.")
@@ -60,16 +63,30 @@ def update_site(cloud, source, revision, *, report=print, site_check=check_site,
         raise SetupError("Successful image digest was not verified. Web update stopped.")
     image = tag.split(":site-", 1)[0] + "@" + digest
     report("2/4 DB 구조를 갱신하고 실제 읽기·쓰기를 검사합니다.")
-    # Image-only updates retain runtime identity, DB secrets, command and socket attachment.
+    # Preserve runtime identity, DB secrets, command and socket attachment.
     cloud.request(["run", "jobs", "update", JOB, region, f"--image={image}"])
     execution = cloud.request(["run", "jobs", "execute", JOB, region, "--wait"])
     verify_execution(execution)
     report("3/4 웹을 새 버전으로 갱신합니다. 카카오 키·계정·카페·메뉴는 유지합니다.")
-    cloud.request(["run", "services", "update", SERVICE, region, f"--image={image}"])
+    cloud.request(
+        [
+            "run",
+            "services",
+            "update",
+            SERVICE,
+            region,
+            f"--image={image}",
+            "--update-env-vars=REQUIRE_DEADLINE_WORKER=True",
+            "--startup-probe=httpGet.path=/health/ready/,httpGet.port=8000,"
+            "timeoutSeconds=5,periodSeconds=5,failureThreshold=24",
+            "--liveness-probe=httpGet.path=/health/ready/,httpGet.port=8000,"
+            "timeoutSeconds=5,periodSeconds=30,failureThreshold=3",
+        ]
+    )
     report("4/4 사이트 HTTPS와 DB 연결을 검사합니다.")
     site_check(base_url)
     report(f"배포와 기본 검사가 완료됐습니다. 사이트: {base_url}")
-    report("접수한 주문의 메뉴 완료 버튼과 총무 완료 알림을 브라우저에서 확인해 주세요.")
+    report("사이트에서 반영된 화면과 기능을 확인해 주세요.")
     return base_url
 
 

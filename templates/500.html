@@ -1,0 +1,4 @@
+{% extends "core/error_base.html" %}
+{% block title %}잠시 연결이 원활하지 않아요{% endblock %}
+{% block heading %}잠시 연결이 원활하지 않아요.{% endblock %}
+{% block message %}<p>잠시 후 다시 확인해 주세요.</p><p>주문을 전송하던 중이었다면, 내 주문에서 처리 상태를 먼저 확인해 주세요.</p><a class="primary-button" href="{% url 'accounts:organizer' %}">내 주문 확인</a>{% endblock %}

@@ -4,6 +4,11 @@ from accounts import views as account_views
 from core import views
 from orders import views as order_views
 
+handler400 = "core.error_views.bad_request"
+handler403 = "core.error_views.permission_denied"
+handler404 = "core.error_views.not_found"
+handler500 = "core.error_views.server_error"
+
 urlpatterns = [
     path("", views.home, name="home"),
     path("accounts/", include("accounts.urls")),

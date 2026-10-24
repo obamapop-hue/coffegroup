@@ -3,6 +3,7 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from django.db import DatabaseError, close_old_connections, connection
 
+from core.runtime import record_deadline_success
 from orders.services import expire_due_rooms
 
 
@@ -24,6 +25,7 @@ class Command(BaseCommand):
                 close_old_connections()
             try:
                 count = expire_due_rooms()
+                record_deadline_success()
                 failures = 0
                 if count or options["once"]:
                     self.stdout.write(f"기한 경과 주문서 {count}건 처리")
