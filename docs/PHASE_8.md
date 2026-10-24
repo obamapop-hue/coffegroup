@@ -99,9 +99,17 @@ gcloud sql instances patch yeongcha-db --deletion-protection --project=active-ve
 비용이 발생하므로 복원·검증 뒤 삭제한다. 아직 임시 자원은 만들지 않았다.
 
 ```bash
-gcloud sql instances create yeongcha-restore-check-20261024 --database-version=POSTGRES_18 --edition=ENTERPRISE --tier=db-f1-micro --region=asia-northeast3 --availability-type=zonal --storage-size=10GB --labels=yeongcha-purpose=restore-check --async --project=active-venture-449808-a5
+gcloud sql instances create yeongcha-restore-check-20261024 --database-version=POSTGRES_18 --edition=ENTERPRISE --tier=db-f1-micro --region=asia-northeast3 --availability-type=zonal --storage-size=10GB --async --project=active-venture-449808-a5
 ```
 
 생성 상태가 RUNNABLE인지 확인한 다음에만 백업을 위 임시 대상으로 복원한다.
 복원 명령의 대상(restore-instance)에 원본 yeongcha-db를 넣지 않는다.
 현재 Google 복원 실행·복원 자료 읽기/쓰기·임시 자원 정리는 여전히 미완료다.
+
+### 생성 명령 정정
+
+사용자의 일반 `gcloud sql instances create`는 `--labels`를 지원하지 않아
+명령 해석 단계에서 거부됐다. 이 시도에서 자원은 생성되지 않았다.
+위 명령에서 해당 옵션을 제거했다. 이미 원본을 생성할 때 사용한 일반 명령의
+지원 옵션만 사용하며, 이 이유로 alpha/beta 명령으로 전환하지 않는다.
+임시 자원은 정확한 별도 이름과 사용자의 생성 결과를 확인해 관리한다.
