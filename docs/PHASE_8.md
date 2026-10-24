@@ -84,3 +84,24 @@ gcloud sql instances patch yeongcha-db --deletion-protection --project=active-ve
 이 보호 설정의 적용 결과를 확인하고, 현재 시점의 별도 백업과 운영 DB와 분리한
 복구 검증을 준비한다. 오래된 자동 백업만으로 최근 변경의 복구까지 확인했다고
 보고하지 않는다. Google의 실제 복원과 비용·개인정보 준비는 계속 미완료 상태다.
+
+
+## 2026-10-24 삭제 보호와 수동 백업 확인
+
+사용자가 삭제 방지 설정 성공 출력을 전달했다. 현재 yeongcha-db의 삭제 방지는 켜져 있다.
+
+사용자가 요청한 수동 백업은 ID `1792849041384`, ON_DEMAND, SUCCESSFUL이다.
+설명은 yeongcha-recovery-check-20261023이고 완료 시각은
+2026-10-24 13:38:42.417 UTC(한국 시간 22:38:42)다. 설명의 날짜와 실제 완료일은 구분한다.
+
+다음은 원본과 다른 이름의 빈 임시 저장소를 만드는 단계다. 기존 사이트 연결,
+원본 삭제 보호와 계정·자료를 변경하지 않는다. 임시 자원에도 실행 시간에 따른
+비용이 발생하므로 복원·검증 뒤 삭제한다. 아직 임시 자원은 만들지 않았다.
+
+```bash
+gcloud sql instances create yeongcha-restore-check-20261024 --database-version=POSTGRES_18 --edition=ENTERPRISE --tier=db-f1-micro --region=asia-northeast3 --availability-type=zonal --storage-size=10GB --labels=yeongcha-purpose=restore-check --async --project=active-venture-449808-a5
+```
+
+생성 상태가 RUNNABLE인지 확인한 다음에만 백업을 위 임시 대상으로 복원한다.
+복원 명령의 대상(restore-instance)에 원본 yeongcha-db를 넣지 않는다.
+현재 Google 복원 실행·복원 자료 읽기/쓰기·임시 자원 정리는 여전히 미완료다.
