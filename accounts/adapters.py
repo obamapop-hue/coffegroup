@@ -5,8 +5,10 @@ from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render
 
+from .models import KakaoUnlinkJob
 from .services import ROLES
 
 
@@ -50,6 +52,17 @@ class KakaoAdapter(DefaultSocialAccountAdapter):
         return settings.KAKAO_LOGIN_ENABLED and sociallogin.account.provider == "kakao"
 
     def pre_social_login(self, request, sociallogin):
+        if (sociallogin.state.get("data") or {}).get("action") == "verify-withdrawal":
+            from .withdrawal import accept_withdrawal_verification
+
+            try:
+                if not settings.KAKAO_WITHDRAWAL_ENABLED:
+                    raise PermissionDenied
+                accept_withdrawal_verification(request, sociallogin)
+            except PermissionDenied:
+                request.session.pop("withdrawal_verified", None)
+                messages.error(request, "로그인한 회원과 같은 카카오 계정으로 확인해 주세요.")
+            raise ImmediateHttpResponse(redirect("accounts:withdraw"))
         role = (sociallogin.state.get("data") or {}).get("role")
         if (
             not settings.KAKAO_LOGIN_ENABLED
@@ -57,6 +70,11 @@ class KakaoAdapter(DefaultSocialAccountAdapter):
             or role not in ROLES
             or sociallogin.state.get("process") != "login"
         ):
+            raise ImmediateHttpResponse(redirect("accounts:login-error"))
+        if KakaoUnlinkJob.objects.filter(kakao_uid=sociallogin.account.uid).exists():
+            messages.error(
+                request, "카카오 연결 해제를 마무리하고 있어요. 잠시 뒤 다시 시도해 주세요."
+            )
             raise ImmediateHttpResponse(redirect("accounts:login-error"))
         if sociallogin.is_existing:
             nickname = sociallogin.account.extra_data["nickname"]

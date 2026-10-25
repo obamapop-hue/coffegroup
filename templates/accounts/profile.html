@@ -25,5 +25,6 @@
   </div>
   <p class="copy-status" id="copy-code-status" role="status" aria-live="polite"></p>
 </section>
+<p><a class="text-button" href="{% url 'accounts:withdraw' %}">회원 탈퇴</a></p>
 {% endblock %}
 {% block scripts %}<script src="{% static 'js/profile.js' %}" defer></script>{% endblock %}

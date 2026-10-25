@@ -113,6 +113,13 @@ def profile(request):
 
 @never_cache
 @require_GET
+@role_required("operator")
+def privacy_preview(request):
+    return render(request, "accounts/privacy_preview.html")
+
+
+@never_cache
+@require_GET
 @role_required("organizer")
 def organizer(request):
     expire_due_rooms()
@@ -141,6 +148,8 @@ def seller(request):
 def operator(request):
     from support.models import Ticket
 
+    from .models import KakaoUnlinkJob
+
     expire_due_rooms()
     return render(
         request,
@@ -151,6 +160,7 @@ def operator(request):
             "sheet_data": cafe_state(),
             "recent_rooms": Room.objects.all()[:20],
             "support_waiting_count": Ticket.objects.filter(status=Ticket.Status.WAITING).count(),
+            "unlink_pending_count": KakaoUnlinkJob.objects.count(),
         },
     )
 

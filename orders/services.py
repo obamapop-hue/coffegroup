@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models, transaction
 from django.utils import timezone
 
+from accounts.models import User
 from cafes.catalog import snapshot_menu
 from cafes.models import Cafe
 
@@ -18,6 +19,9 @@ ACTIVE = (*UNSENT, Room.Status.PENDING, Room.Status.ACCEPTED)
 def create_room(*, user, cafe_id):
     if not user.is_authenticated or not user.is_active:
         raise PermissionDenied
+    member = User.objects.select_for_update(no_key=True).filter(pk=user.pk, is_active=True).first()
+    if member is None:
+        raise PermissionDenied
     cafe = Cafe.objects.select_for_update().get(pk=cafe_id)
     if not cafe.is_open or not cafe.seller_id:
         raise ValidationError("영업종료 카페는 링크를 만들 수 없어요.")
@@ -26,7 +30,7 @@ def create_room(*, user, cafe_id):
         raise ValidationError("현재 주문 가능한 메뉴가 없어요.")
     now = timezone.now()
     room = Room.objects.create(
-        organizer=user,
+        organizer=member,
         cafe=cafe,
         cafe_snapshot={"name": cafe.name, "phone": cafe.phone, "address": cafe.address},
         menu_snapshot=menu,

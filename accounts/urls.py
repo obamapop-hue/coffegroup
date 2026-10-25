@@ -1,9 +1,14 @@
 from django.urls import path
 
-from . import views
+from . import views, withdrawal_views
 
 app_name = "accounts"
 urlpatterns = [
+    path("privacy-preview/", views.privacy_preview, name="privacy-preview"),
+    path("withdraw/check/", withdrawal_views.check_connection, name="withdraw-check"),
+    path("withdraw/", withdrawal_views.withdraw, name="withdraw"),
+    path("withdraw/verify/", withdrawal_views.verify, name="withdraw-verify"),
+    path("withdraw/done/", withdrawal_views.done, name="withdraw-done"),
     path("entry/organizer/", views.entry, {"role": "organizer"}, name="entry-organizer"),
     path("entry/seller/", views.entry, {"role": "seller"}, name="entry-seller"),
     path("entry/operator/", views.entry, {"role": "operator"}, name="entry-operator"),

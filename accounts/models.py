@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class User(AbstractUser):
@@ -14,3 +15,13 @@ class User(AbstractUser):
     @property
     def display_name(self):
         return self.nickname or "영차 회원"
+
+
+class KakaoUnlinkJob(models.Model):
+    """Temporary retry data, removed as soon as Kakao confirms unlinking."""
+
+    kakao_uid = models.CharField(max_length=100, unique=True)
+    credential_fingerprint = models.CharField(max_length=64)
+    created_at = models.DateTimeField(default=timezone.now)
+    next_attempt_at = models.DateTimeField(default=timezone.now, db_index=True)
+    attempts = models.PositiveIntegerField(default=0)

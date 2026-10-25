@@ -1,0 +1,28 @@
+{% extends "accounts/dashboard.html" %}
+{% block title %}회원 탈퇴 · 영차{% endblock %}
+{% block dashboard_title %}회원 탈퇴{% endblock %}
+{% block dashboard_content %}
+<section class="account-panel">
+  <h2>탈퇴 전에 확인해 주세요.</h2>
+  <p>영차의 로그인 계정 정보와 계정 연결 코드를 삭제하고, 카카오 로그인 연결 해제를 요청해요. 다른 기기의 영차 로그인도 사용할 수 없게 돼요.</p>
+  <p>과거 주문의 메뉴·수량·금액·주문 시각·처리 이력과 주문 당시 닉네임은 남아요. 탈퇴한 계정과 주문 이력의 연결은 끊어져요. 다시 가입해도 예전 권한과 주문 이력이 돌아오지 않아요.</p>
+  <p>문의와 답변은 답변 완료 후 1년 동안 보관해요. 탈퇴 후에는 기존 계정으로 문의를 조회할 수 없어요.</p>
+  <p>카카오가 연결 해제에 응답할 때까지 카카오 회원 구분 번호를 임시 보관하고 재시도해요. 확인이 끝나면 해당 번호도 삭제해요.</p>
+  {% if problem %}<p role="alert">{{ problem }}</p>{% endif %}
+  {% if not withdrawal_enabled %}<p>회원 탈퇴 연결을 준비하고 있어요. 지금은 문의하기로 요청해 주세요.</p>{% endif %}
+  {% if withdrawal_enabled and not problem %}
+    {% if verified %}
+    <form method="post" class="stack-form">{% csrf_token %}{{ form.non_field_errors }}
+      <p>{{ form.confirm.errors }}<label class="withdrawal-confirm">{{ form.confirm }}<span>{{ form.confirm.label }}</span></label></p>
+      <button class="primary-button" type="submit">회원 탈퇴하기</button>
+    </form>
+    {% else %}
+      {{ form.non_field_errors }}
+      <p>안전을 위해 현재 로그인한 회원의 카카오 계정으로 한 번 더 확인해 주세요. 확인한 뒤 최종 탈퇴 버튼이 나와요.</p>
+      <form method="post" action="{% url 'accounts:withdraw-verify' %}">{% csrf_token %}<button class="primary-button" type="submit">카카오로 본인 확인</button></form>
+    {% endif %}
+  {% else %}{{ form.non_field_errors }}{% endif %}
+  <p><a class="text-button" href="{% url 'support:inbox' %}">문의하기</a></p>
+</section>
+<a class="text-button" href="{% url 'accounts:profile' %}">개인정보로 돌아가기</a>
+{% endblock %}

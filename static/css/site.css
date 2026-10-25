@@ -144,3 +144,5 @@ h1 { margin: 0; font-size: calc(clamp(42px, 4.8vw, 62px) + var(--font-step)); li
 .order-notification a, .order-notification button { color: #ce2b25; font: inherit; font-weight: 600; }
 .order-notification button { background: #fff; border: 1px solid #ce2b25; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
 .stack-form textarea { display: block; width: 100%; min-height: 150px; resize: vertical; padding: 10px 12px; border: 1px solid #d8cccc; border-radius: 7px; background: #fff; color: var(--ink); font: inherit; font-size: calc(16px + var(--font-step)); line-height: 1.7; }
+.stack-form .withdrawal-confirm { display: flex; align-items: flex-start; gap: 10px; }
+.stack-form .withdrawal-confirm input { flex: 0 0 20px; width: 20px; min-height: 20px; margin-top: 4px; accent-color: var(--accent); }

@@ -107,6 +107,12 @@ KAKAO_RESET_API_KEY = env("KAKAO_RESET_API_KEY", default="") or env(
     "KAKAO_REST_API_KEY", default=""
 )
 KAKAO_CLIENT_SECRET = env("KAKAO_CLIENT_SECRET", default="")
+KAKAO_ADMIN_KEY = env("KAKAO_ADMIN_KEY", default="")
+KAKAO_WITHDRAWAL_ENABLED = env.bool("KAKAO_WITHDRAWAL_ENABLED", default=False)
+if KAKAO_WITHDRAWAL_ENABLED and not (KAKAO_LOGIN_ENABLED and KAKAO_ADMIN_KEY):
+    raise ImproperlyConfigured(
+        "회원 탈퇴 활성화에는 카카오 로그인 설정과 KAKAO_ADMIN_KEY가 필요합니다."
+    )
 # Out-of-band first-owner selection. No public request can set this value.
 INITIAL_OPERATOR_ACCOUNT_CODE = env("INITIAL_OPERATOR_ACCOUNT_CODE", default="")
 if KAKAO_LOGIN_ENABLED and not (KAKAO_RESET_API_KEY and KAKAO_CLIENT_SECRET):

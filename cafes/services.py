@@ -49,6 +49,8 @@ def unlink_seller(*, actor, cafe_id):
 def open_for_seller(*, user):
     if not user.is_active:
         raise PermissionDenied
+    if not User.objects.select_for_update(no_key=True).filter(pk=user.pk, is_active=True).exists():
+        raise PermissionDenied
     cafe = Cafe.objects.select_for_update().filter(seller=user).first()
     if cafe is None:
         raise PermissionDenied
