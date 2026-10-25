@@ -129,7 +129,7 @@ h1 { margin: 0; font-size: calc(clamp(42px, 4.8vw, 62px) + var(--font-step)); li
   .start-action { position: fixed; inset: auto 0 0; z-index: 5; display: flex; flex-direction: column; align-items: center; padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--paper); border-top: 1px solid var(--line); }
   .start-button { width: 100%; max-width: 420px; }.service-status { margin: 8px 0 0; font-size: calc(10px + var(--font-step)); text-align: center; }
   .start-action > form { width: 100%; max-width: 420px; }
-  .header-account { max-width: 150px; font-size: calc(11px + var(--font-step)); gap: 3px 8px; }
+  .header-account { flex: 1; min-width: 0; font-size: calc(11px + var(--font-step)); gap: 3px 8px; }
   .account-main { padding: 30px 0 40px; }.account-panel { padding: 20px; }.stack-form { max-width: none; }.stack-form .primary-button { width: 100%; }
   .coffee-scene { min-height: 310px; max-width: 420px; width: 100%; margin: 0 auto; border-radius: 46% 46% 10px 10px; }.scene-label { top: 29px; }.cup-back { left: 23%; top: 79px; }.cup-front { right: 22%; top: 115px; }.spark-one { right: 42px; top: 75px; }.spark-two { left: 48px; top: 68px; }
   .how-it-works { padding: 20px 0 24px; }
