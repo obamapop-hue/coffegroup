@@ -4,6 +4,7 @@
 {% block extra_styles %}<link rel="stylesheet" href="{% static 'css/sheets.css' %}">{% endblock %}
 {% block dashboard_title %}카페·판매자 관리{% endblock %}
 {% block dashboard_content %}
+<p><a class="primary-button" href="{% url 'accounts:members' %}">회원 관리 · 가입·탈퇴 확인</a></p>
 <p><a class="text-button" href="{% url 'accounts:privacy-preview' %}">개인정보 안내 초안 확인</a></p>
 {% if unlink_pending_count %}<p role="status">카카오 연결 해제 재시도 {{ unlink_pending_count }}건이 있어요. 사이트 회원 정보는 삭제됐으며 연결 해제 확인을 기다리고 있어요.</p>{% endif %}
 <p><a class="primary-button" href="{% url 'support:operator-inbox' %}">사용자 문의 확인{% if support_waiting_count %} · {{ support_waiting_count }}건 대기{% endif %}</a></p>

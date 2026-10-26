@@ -1,8 +1,9 @@
 {% extends "accounts/dashboard.html" %}
 {% block title %}회원 탈퇴 처리 · 영차{% endblock %}
-{% block dashboard_title %}영차 회원 정보가 삭제되었어요.{% endblock %}
+{% block dashboard_title %}영차 탈퇴가 처리되었어요.{% endblock %}
 {% block dashboard_content %}
 <section class="account-panel">
+  <p>로그인에 사용하던 회원 정보와 계정 연결 코드는 삭제됐어요. 운영자 확인용 가입·탈퇴 이력에는 닉네임과 처리 시각이 남아요.</p>
   <p>카카오 로그인 연결 해제도 요청했어요. 카카오 응답이 늦어지면 자동으로 다시 시도해요. 확인이 끝날 때까지 재가입이 잠시 제한될 수 있어요.</p>
   <p>과거 주문 내용과 주문 당시 닉네임은 유지되고, 계정과 주문 이력의 연결은 끊어졌어요.</p>
   <a class="text-button" href="{% url 'home' %}">영차 홈으로</a>

@@ -1,4 +1,5 @@
 .sheet-intro { margin: 0 0 22px; color: var(--muted); font-size: calc(14px + var(--font-step)); line-height: 1.8; }
+.member-table .member-name { min-width: 120px; max-width: 200px; }
 .catalog-heading { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: baseline; justify-content: space-between; }.catalog-heading a { font-size: calc(13px + var(--font-step)); color: var(--accent); }
 .sheet-workspace { min-width: 0; margin-bottom: 36px; }.sheet-controls { min-width: 0; margin: 0; border: 0; padding: 0; }
 .sheet-tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--line); margin-bottom: 22px; }.sheet-tabs button { border: 0; border-bottom: 3px solid transparent; padding: 12px 5px; background: #fff; color: var(--muted); font-size: calc(16px + var(--font-step)); font-weight: 600; cursor: pointer; }.sheet-tabs button[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--accent); }.sheet-tabs span { margin-left: 5px; font-size: calc(12px + var(--font-step)); font-weight: 400; }

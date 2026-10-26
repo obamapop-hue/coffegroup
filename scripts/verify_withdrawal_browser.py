@@ -21,7 +21,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import Client, override_settings
 from django.test.runner import DiscoverRunner
 
-from accounts.models import User
+from accounts.models import MembershipRecord, User
 
 if settings.DATABASES["default"].get("HOST", "") not in ("", "localhost", "127.0.0.1", "::1"):
     raise RuntimeError("Only a local development database is allowed.")
@@ -42,7 +42,7 @@ class MembershipBrowserCheck(StaticLiveServerTestCase):
     def test_real_csrf_confirmation_and_private_preview(self):
         cases = []
         for width in [320, 390, 1440]:
-            member = User.objects.create_user(f"member-{width}", nickname="확인용 회원")
+            member = User.objects.create_user(f"member-{width}", nickname=f"확인용 회원 {width}")
             SocialAccount.objects.create(user=member, provider="kakao", uid=str(width))
             unverified = Client()
             unverified.force_login(member)
@@ -57,6 +57,8 @@ class MembershipBrowserCheck(StaticLiveServerTestCase):
                     "unverified": unverified.cookies["sessionid"].value,
                     "verified": verified.cookies["sessionid"].value,
                     "id": member.pk,
+                    "record": member.membership_record.pk,
+                    "nickname": member.nickname,
                 }
             )
         operator = User.objects.create_user("preview-operator", is_operator=True)
@@ -84,6 +86,15 @@ class MembershipBrowserCheck(StaticLiveServerTestCase):
         self.assertEqual(result.returncode, 0)
         self.assertFalse(User.objects.filter(pk__in=[case["id"] for case in cases]).exists())
         self.assertTrue(User.objects.filter(pk=operator.pk).exists())
+        self.assertEqual(
+            MembershipRecord.objects.filter(
+                pk__in=[case["record"] for case in cases],
+                user__isnull=True,
+                withdrawn_at__isnull=False,
+                unlink_confirmed_at__isnull=False,
+            ).count(),
+            len(cases),
+        )
 
 
 if __name__ == "__main__":

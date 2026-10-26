@@ -2,12 +2,23 @@ from allauth.account.signals import user_logged_in
 from django.conf import settings
 from django.contrib.auth.signals import user_logged_out
 from django.core.exceptions import PermissionDenied
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
 
 from cafes.services import close_for_seller
 
+from .models import User
 from .services import enter_role, select_initial_operator
+
+
+@receiver(post_save, sender=User)
+def sync_membership_record(sender, instance, raw=False, **kwargs):
+    if raw:
+        return
+    from .membership import sync_member
+
+    sync_member(instance)
 
 
 @receiver(user_logged_in)

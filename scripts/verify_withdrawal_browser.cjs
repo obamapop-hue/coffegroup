@@ -15,6 +15,14 @@ async function run(config) {
   }
   try {
     for (const entry of config.cases) {
+      const admin = await pageFor(config.operator, entry.width);
+      const memberUrl = config.base + '/accounts/operator/members/?q=' + encodeURIComponent(entry.nickname);
+      await admin.goto(memberUrl);
+      let memberRow = admin.locator('.member-table tbody tr');
+      assert.equal(await memberRow.count(), 1);
+      await memberRow.getByText('가입', {exact: true}).waitFor();
+      assert(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await admin.screenshot({path: config.output + '/members-current-' + entry.width + '.png', fullPage: true});
       const unverified = await pageFor(entry.unverified, entry.width);
       await unverified.goto(config.base + '/accounts/withdraw/');
       assert.equal(await unverified.getByRole('button', {name: '카카오로 본인 확인', exact: true}).count(), 1);
@@ -30,11 +38,17 @@ async function run(config) {
       await Promise.all([page.waitForURL('**/accounts/withdraw/done/'), page.getByRole('button', {name: '회원 탈퇴하기', exact: true}).click()]);
       assert.equal(await page.getByRole('button', {name: '로그아웃', exact: true}).count(), 0);
       assert.deepEqual(errors, []);
-      const admin = await pageFor(config.operator, entry.width);
+      await admin.goto(memberUrl);
+      memberRow = admin.locator('.member-table tbody tr');
+      await memberRow.getByText('탈퇴', {exact: true}).waitFor();
+      await memberRow.getByText('해제 완료', {exact: false}).waitFor();
+      assert.equal(await memberRow.count(), 1);
+      assert(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await admin.screenshot({path: config.output + '/members-withdrawn-' + entry.width + '.png', fullPage: true});
       await admin.goto(config.base + '/accounts/privacy-preview/');
       await admin.getByText('운영자 확인용 · 아직 공개하지 않은 초안', {exact: true}).waitFor();
       assert(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-      console.log(entry.width + 'px: fresh-proof gate, real CSRF confirmation, fake member deletion/logout and private draft verified');
+      console.log(entry.width + 'px: current-member list, withdrawal/unlink history, fresh-proof gate, real CSRF confirmation and private draft verified');
     }
   } finally {
     await Promise.all(contexts.map(context => context.close()));

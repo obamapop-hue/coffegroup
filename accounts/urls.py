@@ -1,9 +1,10 @@
 from django.urls import path
 
-from . import views, withdrawal_views
+from . import member_views, views, withdrawal_views
 
 app_name = "accounts"
 urlpatterns = [
+    path("operator/members/", member_views.members, name="members"),
     path("privacy-preview/", views.privacy_preview, name="privacy-preview"),
     path("withdraw/check/", withdrawal_views.check_connection, name="withdraw-check"),
     path("withdraw/", withdrawal_views.withdraw, name="withdraw"),

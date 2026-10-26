@@ -25,3 +25,21 @@ class KakaoUnlinkJob(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     next_attempt_at = models.DateTimeField(default=timezone.now, db_index=True)
     attempts = models.PositiveIntegerField(default=0)
+    membership_record = models.OneToOneField(
+        "MembershipRecord", null=True, on_delete=models.SET_NULL, related_name="unlink_job"
+    )
+
+
+class MembershipRecord(models.Model):
+    """Operator membership history, separate from deleted login credentials."""
+
+    user = models.OneToOneField(
+        User, null=True, on_delete=models.SET_NULL, related_name="membership_record"
+    )
+    nickname = models.CharField(max_length=40)
+    joined_at = models.DateTimeField(default=timezone.now)
+    withdrawn_at = models.DateTimeField(null=True)
+    unlink_confirmed_at = models.DateTimeField(null=True)
+
+    class Meta:
+        ordering = ["-joined_at", "-pk"]

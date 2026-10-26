@@ -22,6 +22,7 @@ from cafes.models import Cafe, CafeAccessEvent
 from orders.models import Room
 from orders.services import ACTIVE
 
+from .membership import sync_member
 from .models import KakaoUnlinkJob, User
 
 
@@ -139,9 +140,22 @@ def withdraw_member(*, user):
     if problem:
         raise ValidationError(problem)
     account = SocialAccount.objects.get(user=member, provider="kakao")
+    record = sync_member(member)
     job, _ = KakaoUnlinkJob.objects.get_or_create(
-        kakao_uid=account.uid, defaults={"credential_fingerprint": credential_fingerprint()}
+        kakao_uid=account.uid,
+        defaults={
+            "credential_fingerprint": credential_fingerprint(),
+            "membership_record": record,
+        },
     )
+    if job.membership_record_id is None:
+        job.membership_record = record
+        job.save(update_fields=["membership_record"])
+    elif job.membership_record_id != record.pk:
+        raise ValidationError("이미 연결 해제 중인 계정이에요. 문의하기로 확인해 주세요.")
+    record.user = None
+    record.withdrawn_at = timezone.now()
+    record.save(update_fields=["user", "withdrawn_at"])
     for cafe in cafes:
         if cafe.is_open:
             CafeAccessEvent.objects.create(cafe=cafe, actor=member, action="closed")
@@ -201,6 +215,12 @@ def process_unlink_jobs(*, job_id=None, now=None):
         if job.credential_fingerprint == credential_fingerprint() and unlink_from_kakao(
             job.kakao_uid
         ):
+            if job.membership_record_id is not None:
+                from .models import MembershipRecord
+
+                MembershipRecord.objects.filter(pk=job.membership_record_id).update(
+                    unlink_confirmed_at=timezone.now()
+                )
             job.delete()
             return 1
         job.attempts += 1
