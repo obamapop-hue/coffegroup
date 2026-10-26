@@ -39,6 +39,7 @@
             <img src="{% static 'images/yeongcha-arm.png' %}" alt="" width="52" height="52">
           </span>
           <span>영차</span>
+          {% block brand_tagline %}{% endblock %}
         </a>
         {% if request.user.is_authenticated %}
           <form class="header-account" action="{% url 'accounts:logout' %}" method="post">
@@ -58,7 +59,6 @@
       <footer class="site-footer">
         <span class="footer-brand">영차</span>
         <div class="footer-access" aria-label="사이트 메뉴">
-          {% if not request.user.is_authenticated %}<a href="{% url 'support:inbox' %}">문의하기</a>{% endif %}
           {% if request.user.is_authenticated %}
             {% if request.resolver_match.url_name != 'organizer' %}<a href="{% url 'accounts:organizer' %}">내 주문으로 이동</a>{% endif %}
             {% if can_access_seller and request.resolver_match.url_name != 'seller' %}

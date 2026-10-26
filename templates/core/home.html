@@ -1,36 +1,23 @@
 {% extends "base.html" %}
 
+{% block body_class %}home-page{% endblock %}
+{% block brand_tagline %}<span class="brand-tagline">우리 팀 커피 주문을 한 방에!</span>{% endblock %}
 {% block content %}
 <main id="main">
   <section class="how-it-works" aria-label="사용법">
     <ol class="steps">
-      <li><span class="step-number">01</span><h2>링크 만들기</h2><p>카페를 고르고, 카톡방에<br> 링크 하나만 공유해요.</p></li>
-      <li><span class="step-number">02</span><h2>취향대로 고르기</h2><p>참여자는 가입 없이<br> 각자 마실 메뉴를 골라요.</p></li>
-      <li><span class="step-number">03</span><h2>한 번에 주문하기</h2><p>메뉴별 수량과 총액이 자동으로 정리돼요.<br> 총무는 확인하고 주문해요.</p></li>
+      <li><div class="step-heading"><span class="step-number">01</span><h2>링크 만들기</h2></div><p>카페 고르고, 카톡방에 링크 공유!</p></li>
+      <li><div class="step-heading"><span class="step-number">02</span><h2>메뉴 고르기</h2></div><p>링크 통해서 모두 메뉴 주문!</p></li>
+      <li><div class="step-heading"><span class="step-number">03</span><h2>주문서 전송</h2></div><p>다 주문 했으면 주문서 전송!</p></li>
     </ol>
   </section>
   <section class="hero" aria-labelledby="hero-title">
-    <div class="hero-copy">
-      <h1 id="hero-title">커피 주문,<br>링크 하나로<br class="mobile-break"> 모으세요.</h1>
-      <p class="hero-description">한 명씩 묻고, 따로 적을 필요 없이.<br>각자 고른 커피가 하나의 주문서로 모여요.</p>
-      <div class="start-action">
-        <form action="{% url 'accounts:start' 'organizer' %}" method="post">
-          {% csrf_token %}
-          <button class="start-button" type="submit" {% if not kakao_ready and not request.user.is_authenticated %}disabled{% endif %} aria-describedby="service-status">
-            {% if request.user.is_authenticated %}내 화면으로 가기{% else %}카카오로 시작하기{% endif %} <span aria-hidden="true">↗</span>
-          </button>
-        </form>
-        <p class="service-status" id="service-status" role="status">{% if request.user.is_authenticated %}로그인되어 있어요. 주문 기능을 준비하고 있어요.{% elif kakao_ready %}총무는 카카오로 간편하게 시작해요.{% else %}카카오 로그인 연결을 준비하고 있어요.<br>잠시 후 다시 이용해 주세요.{% endif %}</p>
-      </div>
-    </div>
-    <div class="coffee-scene" aria-hidden="true">
-      <div class="scene-label">A LITTLE COFFEE, TOGETHER.</div>
-      <div class="scene-orbit orbit-one"></div><div class="scene-orbit orbit-two"></div>
-      <div class="coffee-cup cup-back"><div class="cup-lid"></div><div class="cup-body"><div class="cup-sleeve"><span>함께</span></div></div></div>
-      <div class="coffee-cup cup-front"><div class="cup-lid"></div><div class="cup-body"><div class="cup-sleeve"><span>한 잔</span></div></div></div>
-      <div class="scene-note">취향은 달라도,<br>주문은 함께.</div>
-      <svg class="scene-spark spark-one" width="29" height="29" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3v24M3 15h24M6.5 6.5l17 17M6.5 23.5l17-17"/></svg><span class="scene-spark spark-two">+</span>
-    </div>
+    <h1 id="hero-title">우리팀 커피 주문, 30초 컷!</h1>
+    <form class="start-action" action="{% url 'accounts:start' 'organizer' %}" method="post">
+      {% csrf_token %}
+      <button class="start-button" type="submit" {% if not kakao_ready %}disabled aria-describedby="service-status"{% endif %}>카카오로 시작하기</button>
+    </form>
+    {% if not kakao_ready %}<p class="service-status" id="service-status" role="status">카카오 로그인 연결을 준비하고 있어요.<br>잠시 후 다시 이용해 주세요.</p>{% endif %}
   </section>
 </main>
 {% endblock %}
