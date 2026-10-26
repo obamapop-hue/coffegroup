@@ -22,8 +22,9 @@
       <td>{{ row.number }}</td>
       <td class="sheet-freeze"><span class="sheet-readonly member-name">{{ row.nickname }}</span></td>
       <td><span class="sheet-readonly">{{ row.status }}</span></td>
-      <td>{% if row.can_restrict %}<span class="sheet-readonly">{% if row.ordering_suspended %}정지{% else %}정상{% endif %}</span>
+      <td>{% if row.can_restrict %}
         <form method="post" action="{% url 'accounts:member-ordering' row.number %}" class="member-ordering-form">{% csrf_token %}
+          <span class="member-ordering-status">{% if row.ordering_suspended %}정지{% else %}정상{% endif %}</span>
           <input type="hidden" name="action" value="{% if row.ordering_suspended %}restore{% else %}suspend{% endif %}">
           <input type="hidden" name="q" value="{{ query }}"><input type="hidden" name="status" value="{{ status }}"><input type="hidden" name="page" value="{{ page.number }}">
           <button class="sheet-button" type="submit">{% if row.ordering_suspended %}정지 해제{% else %}주문 정지{% endif %}</button>
