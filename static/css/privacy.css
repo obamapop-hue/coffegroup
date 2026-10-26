@@ -1,0 +1,22 @@
+.privacy-review-note { border-left: 3px solid var(--accent); padding: 14px 18px; margin-bottom: 32px; background: #fff7f6; line-height: 1.8; }
+.privacy-review-note p { margin: 8px 0 0; }
+.privacy-document { max-width: 880px; line-height: 1.9; overflow-wrap: anywhere; }
+.privacy-document section { margin-top: 36px; }
+.privacy-document h2 { font-size: calc(20px + var(--font-step)); line-height: 1.6; letter-spacing: -.3px; }
+.privacy-document p { margin: 12px 0; }
+.privacy-document a { text-underline-offset: 4px; }
+.privacy-table-wrap { overflow-x: auto; margin: 18px 0; border: 1px solid var(--line); }
+.privacy-table-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.privacy-document table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: calc(14px + var(--font-step)); line-height: 1.8; text-align: left; }
+.privacy-document th, .privacy-document td { vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.privacy-document thead th { background: #faf7f7; font-weight: 600; }
+.privacy-document tbody th { min-width: 130px; font-weight: 600; }
+.privacy-document tbody tr:last-child > * { border-bottom: 0; }
+.privacy-operator-notes { margin-top: 40px; line-height: 1.8; overflow-wrap: anywhere; }
+.privacy-operator-notes summary { cursor: pointer; font-weight: 600; }
+.privacy-operator-notes h2 { font-size: calc(18px + var(--font-step)); margin-top: 24px; }
+.privacy-operator-notes ul { padding-left: 22px; }
+@media (max-width: 600px) {
+  .privacy-document section { margin-top: 28px; }
+  .privacy-document h2 { font-size: calc(18px + var(--font-step)); }
+}
