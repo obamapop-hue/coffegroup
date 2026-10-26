@@ -1,0 +1,7 @@
+{% extends "accounts/dashboard.html" %}
+{% block title %}주문 이용 정지 · 영차{% endblock %}
+{% block dashboard_title %}주문 이용이 정지되어 있어요.{% endblock %}
+{% block dashboard_content %}
+<section class="account-panel"><p>새 주문과 주문 추가·수정·전송을 이용할 수 없어요. 기존 주문 내역을 확인하거나 문의할 수 있어요.</p><a class="text-button" href="{% url 'support:inbox' %}">문의하기</a></section>
+<a class="text-button" href="{% url 'accounts:profile' %}">내 정보·주문 이력</a>
+{% endblock %}

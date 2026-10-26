@@ -49,6 +49,7 @@
           </form>
         {% endif %}
       </header>
+      {% if request.user.is_authenticated and request.user.ordering_suspended %}<div class="flash-messages" role="status"><p>주문 이용이 정지되어 있어요. 기존 주문 조회와 <a href="{% url 'support:inbox' %}">문의하기</a>는 이용할 수 있어요.</p></div>{% endif %}
       {% if messages %}
         <div class="flash-messages" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>
       {% endif %}

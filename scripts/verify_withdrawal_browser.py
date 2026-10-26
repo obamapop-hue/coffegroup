@@ -22,6 +22,7 @@ from django.test import Client, override_settings
 from django.test.runner import DiscoverRunner
 
 from accounts.models import MembershipRecord, User
+from cafes.models import Cafe, Menu
 
 if settings.DATABASES["default"].get("HOST", "") not in ("", "localhost", "127.0.0.1", "::1"):
     raise RuntimeError("Only a local development database is allowed.")
@@ -61,7 +62,12 @@ class MembershipBrowserCheck(StaticLiveServerTestCase):
                     "nickname": member.nickname,
                 }
             )
-        operator = User.objects.create_user("preview-operator", is_operator=True)
+        operator = User.objects.create_user(
+            "preview-operator", nickname="시험 운영자", is_operator=True
+        )
+        seller = User.objects.create_user("browser-cafe-seller", nickname="시험 판매자")
+        cafe = Cafe.objects.create(name="회원 기능 시험 카페", seller=seller, is_open=True)
+        Menu.objects.create(cafe=cafe, name="아메리카노", price=3000)
         operator_client = Client()
         operator_client.force_login(operator)
         output = ROOT / ".cache" / "withdrawal"
@@ -70,6 +76,7 @@ class MembershipBrowserCheck(StaticLiveServerTestCase):
             "base": self.live_server_url,
             "cases": cases,
             "operator": operator_client.cookies["sessionid"].value,
+            "cafe": cafe.pk,
             "output": str(output),
         }
         with (

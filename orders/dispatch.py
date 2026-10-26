@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
+from accounts.ordering import ordering_member
 from cafes.models import Cafe
 
 from .collection import editable_items, normalize_order, require_owner
@@ -62,6 +63,8 @@ def aggregate_order(room):
 
 @transaction.atomic
 def preview_order(*, user, room_id):
+    # This read-only token preview can run while the detail view holds a room lock.
+    ordering_member(user, lock=False)
     room = Room.objects.select_for_update().get(pk=room_id)
     require_owner(room, user)
     if expire_locked(room, timezone.now()):
@@ -75,6 +78,7 @@ def preview_order(*, user, room_id):
 
 @transaction.atomic
 def send_order(*, user, room_id, confirmation_token):
+    ordering_member(user)
     room = Room.objects.select_for_update().get(pk=room_id)
     require_owner(room, user)
     if expire_locked(room, timezone.now()):

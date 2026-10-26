@@ -23,7 +23,22 @@ async function run(config) {
       await memberRow.getByText('가입', {exact: true}).waitFor();
       assert(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       await admin.screenshot({path: config.output + '/members-current-' + entry.width + '.png', fullPage: true});
+      await memberRow.getByRole('button', {name: '주문 정지', exact: true}).click();
+      await admin.locator('.member-table tbody tr').getByRole('button', {name: '정지 해제', exact: true}).waitFor();
+      assert(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await admin.screenshot({path: config.output + '/members-suspended-' + entry.width + '.png', fullPage: true});
       const unverified = await pageFor(entry.unverified, entry.width);
+      await unverified.goto(config.base + '/accounts/organizer/');
+      const orderButton = unverified.getByRole('button', {name: '주문하기', exact: true});
+      assert(await orderButton.isDisabled());
+      const csrf = await unverified.locator('input[name="csrfmiddlewaretoken"]').first().inputValue();
+      const blocked = await unverified.request.post(config.base + '/orders/create/' + config.cafe + '/', {form: {csrfmiddlewaretoken: csrf}});
+      assert.equal(blocked.status(), 403);
+      await unverified.screenshot({path: config.output + '/ordering-suspended-' + entry.width + '.png', fullPage: true});
+      await admin.locator('.member-table tbody tr').getByRole('button', {name: '정지 해제', exact: true}).click();
+      await admin.locator('.member-table tbody tr').getByRole('button', {name: '주문 정지', exact: true}).waitFor();
+      await unverified.reload();
+      assert(await unverified.getByRole('button', {name: '주문하기', exact: true}).isEnabled());
       await unverified.goto(config.base + '/accounts/withdraw/');
       assert.equal(await unverified.getByRole('button', {name: '카카오로 본인 확인', exact: true}).count(), 1);
       assert.equal(await unverified.getByRole('button', {name: '회원 탈퇴하기', exact: true}).count(), 0);
@@ -48,7 +63,7 @@ async function run(config) {
       await admin.goto(config.base + '/accounts/privacy-preview/');
       await admin.getByText('운영자 확인용 · 아직 공개하지 않은 초안', {exact: true}).waitFor();
       assert(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-      console.log(entry.width + 'px: current-member list, withdrawal/unlink history, fresh-proof gate, real CSRF confirmation and private draft verified');
+      console.log(entry.width + 'px: member suspension/restore with real CSRF and blocked ordering, withdrawal history and private draft verified');
     }
   } finally {
     await Promise.all(contexts.map(context => context.close()));

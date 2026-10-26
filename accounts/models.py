@@ -11,6 +11,7 @@ class User(AbstractUser):
     account_code = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     nickname = models.CharField("닉네임", max_length=40, blank=True)
     is_operator = models.BooleanField("운영자 권한", default=False)
+    ordering_suspended = models.BooleanField("주문 이용 정지", default=False)
 
     @property
     def display_name(self):
@@ -43,3 +44,20 @@ class MembershipRecord(models.Model):
 
     class Meta:
         ordering = ["-joined_at", "-pk"]
+
+
+class OrderRestrictionEvent(models.Model):
+    class Action(models.TextChoices):
+        SUSPENDED = "suspended", "주문 정지"
+        RESTORED = "restored", "정지 해제"
+
+    membership_record = models.ForeignKey(
+        MembershipRecord, on_delete=models.CASCADE, related_name="order_restrictions"
+    )
+    actor = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    actor_nickname = models.CharField(max_length=40)
+    action = models.CharField(max_length=12, choices=Action)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]

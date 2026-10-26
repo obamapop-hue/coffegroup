@@ -16,8 +16,8 @@
   {% if can_cancel %}<form action="{% url 'orders:cancel' room.pk %}" method="post" data-confirm="카페가 수락하기 전 주문을 취소할까요?">{% csrf_token %}<button class="text-button" type="submit">주문 취소</button></form>{% endif %}
 </section>{% endif %}
 <section class="account-panel collection-panel">
-<div class="panel-heading collection-heading"><h2>[{{ room.created_at|date:"H:i" }}] 주문서</h2>{% if room.status != 'completed' %}<input id="share-link" type="hidden" value="{{ share_url }}"><button class="order-copy-button" type="button" data-copy-share-link aria-label="참여 링크 복사" hidden>링크 복사</button>{% endif %}</div>
-{% if room.status != 'completed' %}<p class="share-copy-status" data-share-copy-status role="status" aria-live="polite"></p>{% endif %}
+<div class="panel-heading collection-heading"><h2>[{{ room.created_at|date:"H:i" }}] 주문서</h2>{% if room.status != 'completed' and not request.user.ordering_suspended %}<input id="share-link" type="hidden" value="{{ share_url }}"><button class="order-copy-button" type="button" data-copy-share-link aria-label="참여 링크 복사" hidden>링크 복사</button>{% endif %}</div>
+{% if room.status != 'completed' and not request.user.ordering_suspended %}<p class="share-copy-status" data-share-copy-status role="status" aria-live="polite"></p>{% endif %}
 <div class="collection-total"><div class="collection-quantity"><span>총 {{ total_quantity }}잔</span><a class="collection-refresh" href="{% url 'orders:detail' room.pk %}" aria-label="주문 새로고침" title="새로고침"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11a9 9 0 0 1 15.4-5.4L21 8M21 3v5h-5M21 13a9 9 0 0 1-15.4 5.4L3 16M3 21v-5h5"/></svg></a></div><strong>{{ total_amount }}원</strong></div>
 {% if can_edit %}<a class="primary-button order-add-link" href="{% url 'orders:order-add' room.pk %}">내 주문 추가</a>{% endif %}
 {% if submissions %}<table class="collection-table" aria-label="참여자별 주문 목록">
@@ -31,7 +31,7 @@
   </tr>{% endfor %}{% endfor %}</tbody>
 </table>{% else %}<p>모인 주문이 없어요. 링크를 공유해주세요.</p>{% endif %}
 </section>
-{% if can_edit %}<div class="collection-controls">{% if can_delete %}<form action="{% url 'orders:delete' room.pk %}" method="post" data-confirm="주문서를 삭제할까요? 참여할 수 없게 되며 기록은 남아요.">{% csrf_token %}<button class="text-button" type="submit">주문서 삭제</button></form>{% endif %}{% if room.status == 'open' %}<form class="collection-close" action="{% url 'orders:close' room.pk %}" method="post" data-confirm="참여를 마감할까요? 마감 후에는 참여자가 제출할 수 없어요.">{% csrf_token %}<button class="primary-button" type="submit">참여 마감</button></form>{% endif %}</div>{% endif %}
+{% if can_delete or can_edit %}<div class="collection-controls">{% if can_delete %}<form action="{% url 'orders:delete' room.pk %}" method="post" data-confirm="주문서를 삭제할까요? 참여할 수 없게 되며 기록은 남아요.">{% csrf_token %}<button class="text-button" type="submit">주문서 삭제</button></form>{% endif %}{% if can_edit and room.status == 'open' %}<form class="collection-close" action="{% url 'orders:close' room.pk %}" method="post" data-confirm="참여를 마감할까요? 마감 후에는 참여자가 제출할 수 없어요.">{% csrf_token %}<button class="primary-button" type="submit">참여 마감</button></form>{% endif %}</div>{% endif %}
 {% if can_send %}<form method="post" action="{% url 'orders:send' room.pk %}" class="final-confirm-form" data-final-confirm>{% csrf_token %}<input type="hidden" name="confirmation_token" value="{{ confirmation_token }}">
   <p class="final-privacy">카페에는 <strong>메뉴·옵션·수량·금액과 총무님의 닉네임({{ request.user.display_name }})만</strong> 전달됩니다.<br>총무님의 전화번호와 참여자의 이름(닉네임) 등 개인정보는 전달되지 않습니다.</p>
   <p class="order-note">전송 후에는 주문 내용을 수정할 수 없어요. 카페 수락 전에는 취소할 수 있으며, 5분 안에 수락하지 않으면 자동 거절돼요.</p>

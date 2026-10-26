@@ -9,6 +9,8 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
+from accounts.models import User
+from accounts.ordering import OrderingSuspended, ordering_required
 from accounts.views import role_required
 from cafes.models import Cafe
 
@@ -28,6 +30,7 @@ from .services import UNSENT, create_room, delete_room, refresh_room
 @never_cache
 @require_POST
 @role_required("organizer")
+@ordering_required
 def create(request, cafe_id):
     get_object_or_404(Cafe, pk=cafe_id)
     try:
@@ -58,10 +61,15 @@ def detail(request, room_id):
             room.organizer_id == request.user.pk
             and room.status == Room.Status.CLOSED
             and bool(submissions)
+            and not request.user.ordering_suspended
         )
         confirmation_token = ""
         if can_send:
-            preview = preview_order(user=request.user, room_id=room.pk)
+            try:
+                preview = preview_order(user=request.user, room_id=room.pk)
+            except OrderingSuspended:
+                request.user.ordering_suspended = True
+                preview = None
             if preview:
                 room, _, confirmation_token = preview
             else:
@@ -73,7 +81,9 @@ def detail(request, room_id):
         {
             "room": room,
             "can_delete": room.organizer_id == request.user.pk and room.status in UNSENT,
-            "can_edit": room.organizer_id == request.user.pk and room.status in UNSENT,
+            "can_edit": room.organizer_id == request.user.pk
+            and room.status in UNSENT
+            and not request.user.ordering_suspended,
             "submissions": submissions,
             "total_quantity": final_order.total_quantity
             if final_order
@@ -107,13 +117,19 @@ def delete(request, room_id):
 
 @never_cache
 @require_http_methods(["GET", "POST"])
+@ordering_required
 def join(request, token):
     # Only the shared menu is exposed; never serialize the organizer or events.
     room_id = Room.objects.filter(token=token).values_list("pk", flat=True).first()
     if room_id is None:
         raise Http404
     room = refresh_room(room_id)
-    if room.status != Room.Status.OPEN:
+    if (
+        room.status != Room.Status.OPEN
+        or not User.objects.filter(
+            pk=room.organizer_id, is_active=True, ordering_suspended=False
+        ).exists()
+    ):
         return render(request, "orders/unavailable.html", status=410)
     form = OrderForm(
         request.POST or None,
@@ -123,6 +139,7 @@ def join(request, token):
     if request.method == "POST" and form.is_valid():
         try:
             result = add_submission(
+                participant_user=request.user,
                 room_id=room.pk,
                 nickname=form.cleaned_data["nickname"],
                 items=form.cleaned_data["items"],
@@ -177,6 +194,7 @@ def submitted(request, token):
 @never_cache
 @require_http_methods(["GET", "POST"])
 @role_required("organizer")
+@ordering_required
 def order_add(request, room_id):
     get_object_or_404(Room, pk=room_id, organizer=request.user)
     room = refresh_room(room_id)
@@ -215,6 +233,7 @@ def order_add(request, room_id):
 @never_cache
 @require_http_methods(["GET", "POST"])
 @role_required("organizer")
+@ordering_required
 def order_edit(request, room_id, submission_id):
     get_object_or_404(Room, pk=room_id, organizer=request.user)
     room = refresh_room(room_id)
@@ -264,6 +283,7 @@ def order_edit(request, room_id, submission_id):
 @never_cache
 @require_POST
 @role_required("organizer")
+@ordering_required
 def order_delete(request, room_id, submission_id):
     get_object_or_404(Room, pk=room_id, organizer=request.user)
     get_object_or_404(Submission, pk=submission_id, room_id=room_id)
@@ -290,6 +310,7 @@ def order_delete(request, room_id, submission_id):
 @never_cache
 @require_POST
 @role_required("organizer")
+@ordering_required
 def close(request, room_id):
     get_object_or_404(Room, pk=room_id, organizer=request.user)
     if close_collection(user=request.user, room_id=room_id):
@@ -313,6 +334,7 @@ def confirm(request, room_id):
 @never_cache
 @require_POST
 @role_required("organizer")
+@ordering_required
 def send(request, room_id):
     get_object_or_404(Room, pk=room_id, organizer=request.user)
     try:

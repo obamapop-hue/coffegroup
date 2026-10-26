@@ -6,6 +6,9 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
 
+from accounts.models import User
+from accounts.ordering import OrderingSuspended, ordering_member
+
 from .models import Room, RoomEvent, Submission, SubmissionRevision
 from .services import UNSENT, expire_locked
 
@@ -120,10 +123,35 @@ def require_owner(room, user):
 
 
 @transaction.atomic
-def add_submission(*, room_id, nickname, items, request_key, user=None):
+def add_submission(*, room_id, nickname, items, request_key, user=None, participant_user=None):
+    owner = None
+    if user is not None:
+        ordering_member(user)
+    else:
+        owner_id = Room.objects.values_list("organizer_id", flat=True).get(pk=room_id)
+        member_ids = {owner_id} if owner_id is not None else set()
+        if participant_user is not None and participant_user.is_authenticated:
+            member_ids.add(participant_user.pk)
+        members = {
+            member.pk: member
+            for member in User.objects.select_for_update(no_key=True)
+            .filter(pk__in=member_ids)
+            .order_by("pk")
+        }
+        if participant_user is not None and participant_user.is_authenticated:
+            participant = members.get(participant_user.pk)
+            if participant is None or not participant.is_active:
+                raise PermissionDenied
+            if participant.ordering_suspended:
+                raise OrderingSuspended
+        owner = members.get(owner_id)
+        if owner is None or not owner.is_active or owner.ordering_suspended:
+            return None
     room = Room.objects.select_for_update().get(pk=room_id)
     if user is not None:
         require_owner(room, user)
+    elif room.organizer_id != owner.pk:
+        return None
     # Return a sentinel rather than raising inside atomic: expiry must commit.
     if expire_locked(room, timezone.now()) or room.status not in (
         UNSENT if user else (Room.Status.OPEN,)
@@ -159,6 +187,7 @@ def add_submission(*, room_id, nickname, items, request_key, user=None):
 def edit_submission(
     *, user, room_id, submission_id, version, nickname=None, items=None, delete=False
 ):
+    ordering_member(user)
     room = Room.objects.select_for_update().get(pk=room_id)
     require_owner(room, user)
     if expire_locked(room, timezone.now()) or room.status not in UNSENT:
@@ -181,6 +210,7 @@ def edit_submission(
 
 @transaction.atomic
 def close_collection(*, user, room_id):
+    ordering_member(user)
     room = Room.objects.select_for_update().get(pk=room_id)
     require_owner(room, user)
     now = timezone.now()

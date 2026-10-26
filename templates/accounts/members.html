@@ -5,29 +5,37 @@
 {% block extra_styles %}<link rel="stylesheet" href="{% static 'css/sheets.css' %}">{% endblock %}
 {% block dashboard_title %}회원 관리{% endblock %}
 {% block dashboard_content %}
-<p class="sheet-intro">가입 계정 {{ totals.current }}개 · 탈퇴 이력 {{ totals.withdrawn }}건</p>
+<p class="sheet-intro">가입 계정 {{ totals.current }}개 · 주문 정지 {{ totals.suspended }}개 · 탈퇴 이력 {{ totals.withdrawn }}건</p>
 <form method="get" class="sheet-toolbar">
   <label class="sheet-search">닉네임 또는 회원 번호<input type="search" name="q" value="{{ query }}" maxlength="100" placeholder="회원 찾기"></label>
-  <label>회원 상태<select name="status"><option value="all" {% if status == 'all' %}selected{% endif %}>전체</option><option value="current" {% if status == 'current' %}selected{% endif %}>가입 회원</option><option value="withdrawn" {% if status == 'withdrawn' %}selected{% endif %}>탈퇴 회원</option></select></label>
+  <label>회원 상태<select name="status"><option value="all" {% if status == 'all' %}selected{% endif %}>전체</option><option value="current" {% if status == 'current' %}selected{% endif %}>가입 회원</option><option value="suspended" {% if status == 'suspended' %}selected{% endif %}>주문 정지 회원</option><option value="withdrawn" {% if status == 'withdrawn' %}selected{% endif %}>탈퇴 회원</option></select></label>
   <button class="sheet-button" type="submit">조회</button>
 </form>
 <p class="sheet-help">기존 가입 회원과 이 기능 적용 이후의 탈퇴 이력을 확인할 수 있어요. 기능 적용 전에 삭제된 계정은 이름·탈퇴 시각을 복원하지 못해요. 재가입은 새 회원 번호로 표시돼요.</p>
-<p class="sheet-scroll-hint">표를 좌우로 밀어 가입·탈퇴 시각과 카카오 연결 상태를 확인하세요.</p>
+<p class="sheet-help">주문 정지는 새 주문서 생성·주문 추가·수정·전송을 막아요. 로그인·기존 주문 조회·문의는 유지하며, 정지 해제 후 다시 주문할 수 있어요.</p>
+<p class="sheet-scroll-hint">표를 좌우로 밀어 주문 정지 버튼과 가입·탈퇴 시각을 확인하세요.</p>
 <div class="sheet-table-wrap" tabindex="0" role="region" aria-label="회원 가입·탈퇴 목록">
   <table class="sheet-table member-table">
     <caption class="sr-only">회원별 닉네임, 가입·탈퇴 상태와 처리 시각</caption>
-    <thead><tr><th scope="col">회원 번호</th><th scope="col" class="sheet-freeze">닉네임</th><th scope="col">상태</th><th scope="col">이용 권한·카페</th><th scope="col">가입 시각</th><th scope="col">탈퇴 시각</th><th scope="col">카카오 연결</th></tr></thead>
+    <thead><tr><th scope="col">회원 번호</th><th scope="col" class="sheet-freeze">닉네임</th><th scope="col">상태</th><th scope="col">주문 이용</th><th scope="col">이용 권한·카페</th><th scope="col">가입 시각</th><th scope="col">탈퇴 시각</th><th scope="col">카카오 연결</th></tr></thead>
     <tbody>{% for row in rows %}<tr>
       <td>{{ row.number }}</td>
       <td class="sheet-freeze"><span class="sheet-readonly member-name">{{ row.nickname }}</span></td>
       <td><span class="sheet-readonly">{{ row.status }}</span></td>
+      <td>{% if row.can_restrict %}<span class="sheet-readonly">{% if row.ordering_suspended %}정지{% else %}정상{% endif %}</span>
+        <form method="post" action="{% url 'accounts:member-ordering' row.number %}" class="member-ordering-form">{% csrf_token %}
+          <input type="hidden" name="action" value="{% if row.ordering_suspended %}restore{% else %}suspend{% endif %}">
+          <input type="hidden" name="q" value="{{ query }}"><input type="hidden" name="status" value="{{ status }}"><input type="hidden" name="page" value="{{ page.number }}">
+          <button class="sheet-button" type="submit">{% if row.ordering_suspended %}정지 해제{% else %}주문 정지{% endif %}</button>
+        </form>{% else %}<span class="sheet-readonly">—</span>{% endif %}</td>
       <td><span class="sheet-readonly">{{ row.roles }}{% if row.cafe %}<br>{{ row.cafe }}{% endif %}</span></td>
       <td><time class="sheet-readonly">{{ row.joined_at|date:"Y.m.d H:i" }}</time></td>
       <td>{% if row.withdrawn_at %}<time class="sheet-readonly">{{ row.withdrawn_at|date:"Y.m.d H:i" }}</time>{% else %}<span class="sheet-readonly">—</span>{% endif %}</td>
       <td><span class="sheet-readonly">{{ row.connection }}{% if row.unlink_confirmed_at %}<br><time>{{ row.unlink_confirmed_at|date:"Y.m.d H:i" }}</time>{% endif %}</span></td>
-    </tr>{% empty %}<tr><td colspan="7"><p class="sheet-empty">해당하는 회원이 없어요.</p></td></tr>{% endfor %}</tbody>
+    </tr>{% empty %}<tr><td colspan="8"><p class="sheet-empty">해당하는 회원이 없어요.</p></td></tr>{% endfor %}</tbody>
   </table>
 </div>
 {% if page.has_other_pages %}<nav class="pagination" aria-label="회원 목록 페이지">{% if page.has_previous %}<a href="?status={{ status }}&amp;q={{ query|urlencode }}&amp;page={{ page.previous_page_number }}">이전</a>{% endif %}<span>{{ page.number }} / {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a href="?status={{ status }}&amp;q={{ query|urlencode }}&amp;page={{ page.next_page_number }}">다음</a>{% endif %}</nav>{% endif %}
+<details class="sheet-history"><summary>최근 주문 정지·해제 이력</summary><ol>{% for event in restriction_events %}<li>{{ event.created_at|date:"Y.m.d H:i" }} · {{ event.membership_record.nickname }} (회원 {{ event.membership_record_id }}) · {{ event.get_action_display }} · 처리: {{ event.actor_nickname }}</li>{% empty %}<li>아직 변경 이력이 없어요.</li>{% endfor %}</ol></details>
 <p><a class="text-button" href="{% url 'accounts:operator' %}">운영자 페이지로</a></p>
 {% endblock %}

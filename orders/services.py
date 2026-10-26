@@ -1,10 +1,10 @@
 from datetime import timedelta
 
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils import timezone
 
-from accounts.models import User
+from accounts.ordering import ordering_member
 from cafes.catalog import snapshot_menu
 from cafes.models import Cafe
 
@@ -17,11 +17,7 @@ ACTIVE = (*UNSENT, Room.Status.PENDING, Room.Status.ACCEPTED)
 
 @transaction.atomic
 def create_room(*, user, cafe_id):
-    if not user.is_authenticated or not user.is_active:
-        raise PermissionDenied
-    member = User.objects.select_for_update(no_key=True).filter(pk=user.pk, is_active=True).first()
-    if member is None:
-        raise PermissionDenied
+    member = ordering_member(user)
     cafe = Cafe.objects.select_for_update().get(pk=cafe_id)
     if not cafe.is_open or not cafe.seller_id:
         raise ValidationError("영업종료 카페는 링크를 만들 수 없어요.")

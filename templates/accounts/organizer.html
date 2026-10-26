@@ -8,7 +8,7 @@
     <article class="account-panel">
       <div class="panel-heading"><h2>{{ cafe.name }}</h2>{% if not cafe.is_open %}<span class="status-chip">영업종료</span>{% else %}<span class="status-chip is-open">영업중</span>{% endif %}</div>
       <p>{{ cafe.address|default:"카페 주소 미등록" }} / {% if cafe.phone %}<a href="tel:{{ cafe.phone }}">{{ cafe.phone }}</a>{% else %}카페 전화번호 미등록{% endif %}</p>
-      <form action="{% url 'orders:create' cafe.pk %}" method="post">{% csrf_token %}<button class="primary-button" type="submit" {% if not cafe.is_open %}disabled{% endif %}>주문하기</button></form>
+      <form action="{% url 'orders:create' cafe.pk %}" method="post">{% csrf_token %}<button class="primary-button" type="submit" {% if not cafe.is_open or request.user.ordering_suspended %}disabled{% endif %}>주문하기</button></form>
     </article>
   {% empty %}<div class="account-panel empty-state"><p>함께할 카페를 준비하고 있어요.</p></div>{% endfor %}
 </section>
