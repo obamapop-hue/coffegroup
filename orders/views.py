@@ -116,7 +116,7 @@ def delete(request, room_id):
         )
     else:
         messages.info(request, "이미 종료된 주문서예요.")
-    return redirect("accounts:profile")
+    return redirect("accounts:organizer")
 
 
 @never_cache

@@ -34,5 +34,6 @@
 .share-copy-status { font-size: calc(12px + var(--font-step)); line-height: 1.6; color: var(--muted); margin: 0 0 12px; }.share-copy-status:empty { display: none; }
 @media(max-width: 360px) { .collection-heading h2 { font-size: calc(17px + var(--font-step)); }.collection-refresh { width: 32px; flex-basis: 32px; } }
 .collection-quantity { display: inline-flex; align-items: center; gap: 8px; }
+.collection-quantity > span { font-size: calc(1em + 1pt); }
 .collection-table th.collection-edit { word-break: keep-all; overflow-wrap: normal; }
 @media(max-width: 360px) { .collection-table th,.collection-table td { padding-left: 2px; padding-right: 2px; }.collection-table th:first-child,.collection-table td:first-child { padding-left: 0; }.collection-table th:last-child,.collection-table td:last-child { padding-right: 0; } }

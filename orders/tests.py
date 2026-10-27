@@ -117,7 +117,9 @@ class RoomTests(TestCase):
         room = self.make_room()
         original = room.menu_snapshot
         response = self.client.post(reverse("orders:delete", args=[room.pk]), follow=True)
-        self.assertContains(response, "주문서 삭제")
+        self.assertRedirects(response, reverse("accounts:organizer"))
+        self.assertContains(response, "주문서를 삭제했어요.")
+        self.assertContains(self.client.get(reverse("accounts:profile")), "주문서 삭제")
         delete_room(user=self.owner, room_id=room.pk)
         room.refresh_from_db()
         self.assertEqual(room.status, Room.Status.DELETED)
