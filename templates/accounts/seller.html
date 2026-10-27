@@ -1,12 +1,8 @@
 {% extends "accounts/dashboard.html" %}
 {% load static %}
 {% block extra_styles %}<link rel="stylesheet" href="{% static 'css/selling.css' %}">{% endblock %}
-{% block dashboard_title %}{{ cafe.name }}{% endblock %}
+{% block dashboard_heading %}{% include "accounts/seller_business.html" %}{% endblock %}
 {% block dashboard_content %}
-<section class="account-panel" data-seller-business>
-  <div class="panel-heading"><h2>카페 영업 상태</h2><span class="status-chip {% if cafe.is_open %}is-open{% endif %}">{% if cafe.is_open %}영업중{% else %}영업종료{% endif %}</span></div>
-  {% if cafe.is_open %}<p>판매자로 로그인해 영업이 시작됐어요. 영업을 마칠 때 로그아웃해 주세요.</p>{% else %}<p>판매자로 로그인하면 영업이 시작돼요.</p><form action="{% url 'accounts:start' 'seller' %}" method="post">{% csrf_token %}<button class="primary-button" type="submit">판매자로 로그인</button></form>{% endif %}
-</section>
 <section class="account-panel seller-alerts" data-seller-alerts data-storage-key="yeongcha-alert-{{ request.user.pk }}-{{ cafe.pk }}" aria-labelledby="seller-alert-title">
   <h2 id="seller-alert-title">주문 알림</h2>
   <p data-alert-status role="status" aria-live="polite"><span class="seller-alert-check" data-alert-check aria-hidden="true" hidden>✓</span><span data-alert-message>알림 기능이 활성화되지 않았습니다. 알림 활성화 버튼을 눌러주세요.</span></p>

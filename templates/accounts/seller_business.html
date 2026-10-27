@@ -1,0 +1,7 @@
+<div class="account-heading seller-heading" data-seller-business>
+  <div class="seller-title-row">
+    <h1>{{ cafe.name }}</h1>
+    <span class="status-chip seller-business-state {% if cafe.is_open %}is-open{% endif %}">{% if cafe.is_open %}영업중{% else %}영업종료{% endif %}</span>
+  </div>
+  {% if not cafe.is_open %}<form class="seller-start" action="{% url 'accounts:start' 'seller' %}" method="post">{% csrf_token %}<button class="primary-button" type="submit">판매자로 로그인</button></form>{% endif %}
+</div>
