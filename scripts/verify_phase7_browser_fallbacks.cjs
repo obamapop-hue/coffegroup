@@ -10,7 +10,7 @@ async function run(cfg) {
   const active = '알림 기능이 정상적으로 활성화 되었습니다.';
   const errors = [];
   async function open(options = {}) {
-    const ctx = await browser.newContext({viewport:{width:390, height:900}});
+    const ctx = await browser.newContext({viewport:{width:390, height:900}, userAgent:options.ua || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'});
     await ctx.addCookies([{name:'sessionid', value:cfg.timeoutSeller, domain:'localhost', path:'/'}]);
     await ctx.addInitScript(options => {
       window.__notificationCalls = [];
@@ -18,6 +18,8 @@ async function run(cfg) {
       window.__trustedPrompts = [];
       window.__blockAudio = !!options.blockAudio;
       window.__noticeError = false;
+      window.__permissionStatus = new EventTarget();
+      Object.defineProperty(navigator, 'permissions', {value:{query:async () => window.__permissionStatus}, configurable:true});
       class FakeNotification {
         static permission = options.permission || 'default';
         static async requestPermission() {
@@ -37,6 +39,9 @@ async function run(cfg) {
       if (options.unsupported) delete window.Notification;
       else Object.defineProperty(window, 'Notification', {value:FakeNotification, configurable:true});
       const play = HTMLMediaElement.prototype.play;
+      const load = HTMLMediaElement.prototype.load;
+      window.__audioLoads = 0;
+      HTMLMediaElement.prototype.load = function() { window.__audioLoads++; return load.call(this); };
       HTMLMediaElement.prototype.play = function() {
         if (window.__blockAudio) return Promise.reject(new DOMException('blocked', 'NotAllowedError'));
         const actual = play.call(this);
@@ -54,6 +59,7 @@ async function run(cfg) {
     assert.equal(await p.getByRole('button', {name:'알림 활성화', exact:true}).count(), 1);
     assert.equal(await p.locator('[data-desktop-enable]').count(), 0);
     assert.equal(await p.evaluate(() => window.__permissionPrompts), 0);
+    assert(await p.locator('[data-alert-setup]').isHidden());
     await state(p, false);
     return {ctx, p};
   }
@@ -69,13 +75,17 @@ async function run(cfg) {
     // One click requests permission even if audio fails; retry recovers without another permission prompt.
     let {ctx, p} = await open({blockAudio:true});
     await queue(p, [1, 2]); await start(p);
-    await p.getByText('소리를 재생하지 못했어요.', {exact:false}).waitFor();
+    await p.locator('[data-alert-detail]').filter({hasText:'소리를 재생하지 못했어요.'}).waitFor();
     await state(p, false);
+    assert(await p.locator('[data-alert-setup]').isVisible());
+    assert.equal(await p.locator('[data-sound-state]').textContent(), '재생 실패');
+    assert.equal(await p.locator('[data-desktop-state]').textContent(), '허용됨');
     assert.equal(await p.evaluate(() => window.__permissionPrompts), 1);
     assert.deepEqual(await p.evaluate(() => window.__trustedPrompts), [true]);
     assert(await p.locator('audio').evaluate(x => x.paused));
     await p.evaluate(() => { window.__blockAudio = false; }); await start(p);
     await state(p, true); await looping(p);
+    assert(await p.locator('[data-alert-setup]').isHidden());
     assert.equal(await p.evaluate(() => window.__permissionPrompts), 1);
     await queue(p, [2]); await looping(p);
     await p.evaluate(() => document.dispatchEvent(new Event('seller:offline'))); await state(p, true);
@@ -91,6 +101,20 @@ async function run(cfg) {
     await p.evaluate(() => document.querySelector('audio').dispatchEvent(new Event('error')));
     await state(p, false); assert(await p.locator('audio').evaluate(x => x.paused));
     await start(p); await state(p, true); await looping(p);
+    assert.equal(await p.evaluate(() => window.__audioLoads), 1);
+    // Permission changes outside the page recover automatically, without another click or prompt.
+    await p.evaluate(() => {
+      window.__blockAudio = true; Notification.permission = 'denied';
+      window.__permissionStatus.dispatchEvent(new Event('change'));
+      document.querySelector('audio').dispatchEvent(new Event('error'));
+    });
+    await state(p, false);
+    assert.match(await p.locator('[data-alert-instructions]').textContent(), /사이트 정보 아이콘/);
+    await p.evaluate(() => {
+      window.__blockAudio = false; Notification.permission = 'granted';
+      window.__permissionStatus.dispatchEvent(new Event('change'));
+    });
+    await state(p, true); await looping(p);
     await p.evaluate(() => { window.__noticeError = true; }); await queue(p, [3, 4]);
     await state(p, false);
     await p.evaluate(() => { window.__noticeError = false; }); await start(p); await state(p, true);
@@ -122,19 +146,30 @@ async function run(cfg) {
       const prompts = await p.evaluate(() => window.__permissionPrompts);
       assert.equal(prompts, options.unsupported || options.permission === 'denied' ? 0 : 1);
       assert(await p.locator('[data-desktop-status]').textContent());
+      assert(await p.locator('[data-alert-setup]').isVisible());
+      assert.equal(await p.locator('[data-sound-state]').textContent(), '재생 확인됨');
+      if (options.result === 'denied' || options.permission === 'denied') {
+        assert.equal(await p.locator('[data-desktop-state]').textContent(), '차단됨');
+        assert.match(await p.locator('[data-alert-instructions]').textContent(), /사이트 설정/);
+      }
       await ctx.close();
     }
     ({ctx, p} = await open({deferPermission:true}));
     await start(p);
     await p.waitForFunction(() => !!window.__resolvePermission);
     await state(p, false);
-    assert(await p.locator('[data-alert-enable]').isDisabled());
+    assert(await p.locator('[data-alert-setup]').isVisible());
+    assert.equal(await p.locator('[data-desktop-state]').textContent(), '허용 대기 중');
+    await start(p);
+    assert.equal(await p.evaluate(() => window.__permissionPrompts), 1);
     await p.evaluate(() => window.__resolvePermission()); await state(p, true);
     await p.waitForFunction(() => document.querySelector('audio').paused);
     await state(p, true); await ctx.close();
     ({ctx, p} = await open({permission:'granted', deferAudio:true}));
     await start(p); await p.waitForFunction(() => !!window.__resolveAudio);
     await state(p, false);
+    await p.waitForTimeout(1700);
+    assert.equal(await p.locator('[data-sound-state]').textContent(), '재생 확인 중');
     await p.evaluate(() => window.__resolveAudio()); await state(p, true);
     assert.equal(await p.evaluate(() => window.__permissionPrompts), 0);
     for (const width of [320, 390, 1440]) {
@@ -143,6 +178,14 @@ async function run(cfg) {
       if (cfg.output) await p.screenshot({path:cfg.output + `/alert-active-${width}.png`, fullPage:true});
     }
     await ctx.close();
+    for (const [ua, expected] of [
+      ['Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0', /사이트 권한 아이콘/],
+      ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/18.0 Safari/605.1.15', /Safari의 설정/]
+    ]) {
+      ({ctx, p} = await open({ua, permission:'denied'})); await start(p);
+      assert.match(await p.locator('[data-alert-instructions]').textContent(), expected);
+      await ctx.close();
+    }
     // Sound test alone must not request desktop permission or claim full readiness.
     ({ctx, p} = await open());
     await p.getByRole('button', {name:'소리 테스트', exact:true}).click();
@@ -150,7 +193,30 @@ async function run(cfg) {
     assert.equal(await p.evaluate(() => window.__permissionPrompts), 0);
     if (cfg.output) await p.screenshot({path:cfg.output + '/alert-inactive-390.png', fullPage:true});
     await ctx.close();
+    // Exercise Chromium's real permission state/change events as well as the failure simulations above.
+    ctx = await browser.newContext({viewport:{width:390, height:1000}});
+    await ctx.addCookies([{name:'sessionid', value:cfg.timeoutSeller, domain:'localhost', path:'/'}]);
+    await ctx.grantPermissions(['notifications'], {origin:cfg.base});
+    p = await ctx.newPage();
+    p.on('pageerror', error => errors.push(String(error)));
+    await p.route('**/js/seller-orders.js', route => route.fulfill({contentType:'application/javascript', body:''}));
+    await p.goto(cfg.base + '/accounts/seller/');
+    assert.equal(await p.evaluate(() => Notification.permission), 'granted');
+    await state(p, false); await start(p); await state(p, true);
+    await ctx.clearPermissions();
+    await ctx.grantPermissions([], {origin:cfg.base});
+    await state(p, false);
+    assert.equal(await p.locator('[data-desktop-state]').textContent(), '차단됨');
+    for (const width of [320, 390, 1440]) {
+      await p.setViewportSize({width, height:1000});
+      assert(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      if (cfg.output) await p.screenshot({path:cfg.output + `/alert-settings-${width}.png`, fullPage:true});
+    }
+    await ctx.grantPermissions(['notifications'], {origin:cfg.base});
+    await state(p, true);
+    assert(await p.locator('[data-alert-setup]').isHidden());
+    await ctx.close();
     assert.deepEqual(errors, []);
-    console.log('No false success for denied/dismissed/unsupported/pending permissions or unverified audio; green check and 320/390/1440px layouts verified');
+    console.log('Guided setup, slow playback, real Chromium permission changes, permission denial/pending/failure, browser-specific guidance and 320/390/1440px layouts verified');
   } finally { await browser.close(); }
 }

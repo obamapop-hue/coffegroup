@@ -11,9 +11,18 @@
   <h2 id="seller-alert-title">주문 알림</h2>
   <p data-alert-status role="status" aria-live="polite"><span class="seller-alert-check" data-alert-check aria-hidden="true" hidden>✓</span><span data-alert-message>알림 기능이 활성화되지 않았습니다. 알림 활성화 버튼을 눌러주세요.</span></p>
   <div class="seller-alert-controls"><button class="primary-button" type="button" data-alert-enable>알림 활성화</button><button class="text-button" type="button" data-alert-test>소리 테스트</button></div>
+  <dl class="seller-alert-progress" data-alert-progress hidden aria-label="알림 설정 상태">
+    <div><dt>소리 알림</dt><dd data-sound-state>확인 전</dd></div>
+    <div><dt>PC 화면 알림</dt><dd data-desktop-state>확인 전</dd></div>
+  </dl>
+  <div class="seller-alert-setup" data-alert-setup hidden>
+    <h3>알림 설정을 확인해 주세요.</h3>
+    <p data-desktop-status role="status"></p>
+    <ol data-alert-instructions></ol>
+    <p>설정을 바꾸고 이 화면으로 돌아오면 자동으로 다시 확인해요. 소리가 차단된 경우에는 알림 활성화 버튼을 한 번 더 눌러주세요.</p>
+  </div>
   <p class="seller-alert-help" data-alert-detail role="status"></p>
   <p class="seller-alert-help">판매자 페이지를 켜 두고 소리가 들리는지 확인해 주세요. PC가 음소거되거나 절전 상태이면 알림을 놓칠 수 있어요.</p>
-  <p class="seller-alert-help" data-desktop-status role="status"></p>
   <audio data-order-audio src="{% static 'audio/order-alert.wav' %}" preload="auto"></audio>
   <noscript><p>자동 주문 알림을 사용하려면 브라우저에서 JavaScript를 켜 주세요.</p></noscript>
 </section>

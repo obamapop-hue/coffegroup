@@ -9,6 +9,18 @@
 .seller-alerts [data-alert-status] { color: var(--ink); font-weight: 600; }
 .seller-alert-check { display: inline-block; margin-right: 8px; color: #16803c; font-size: 1.2em; font-weight: 800; }
 .seller-alert-check[hidden] { display: none; }
+.seller-alert-progress { display: grid; gap: 10px; margin: 20px 0; font-size: calc(13px + var(--font-step)); }
+.seller-alert-progress > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+.seller-alert-progress dt { font-weight: 600; }
+.seller-alert-progress dd { margin: 0; color: var(--accent); }
+.seller-alert-progress dd.is-ready { color: #16803c; }
+.seller-alert-setup { margin-top: 18px; border: 1px solid #e6c2bf; border-radius: 8px; padding: 16px; background: #fff6f5; overflow-wrap: anywhere; }
+.seller-alert-setup h3 { margin: 0 0 10px; font-size: calc(15px + var(--font-step)); }
+.seller-alert-setup p,.seller-alert-setup ol { font-size: calc(13px + var(--font-step)); line-height: 1.7; }
+.seller-alert-setup ol { padding-left: 22px; margin: 12px 0; }
+.seller-alert-setup li + li { margin-top: 8px; }
+.seller-alert-setup p:last-child { margin-bottom: 0; }
+.seller-alert-progress[hidden],.seller-alert-setup[hidden] { display: none; }
 .seller-alert-controls [hidden], .seller-queue-alert[hidden], [data-seller-action-feedback][hidden] { display: none; }
 .seller-queue-alert { padding: 18px; margin: 20px 0; border: 2px solid var(--accent); border-radius: 12px; background: #fff6f5; color: var(--accent); font-weight: 700; line-height: 1.7; }
 [data-pending-order] { border-color: #e6c2bf; }
