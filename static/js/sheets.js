@@ -299,15 +299,26 @@
       if (panel.hidden) return;
       panel.replaceChildren();
       const heading = el('div',undefined,'menu-editor-heading');
-      heading.appendChild(el('h2','메뉴와 옵션 함께 설정'));
+      const identity = el('div',undefined,'menu-editor-identity');
+      identity.appendChild(el('span','메뉴','menu-level-badge'));
+      const menuTitle = el('h2',menu.name || '새 메뉴'); identity.appendChild(menuTitle);
+      heading.appendChild(identity);
       const close = el('button','설정 접기','text-button'); close.type = 'button';
       close.addEventListener('click',() => { this.selectedMenuKey = null; panel.hidden = true; this.updateCounts(); });
       heading.appendChild(close); panel.appendChild(heading);
+      const guide = el('p',undefined,'menu-level-guide');
+      ['메뉴','옵션','선택 항목'].forEach((name,index) => {
+        if (index) { const arrow = el('span','→','menu-level-arrow'); arrow.setAttribute('aria-hidden','true'); guide.appendChild(arrow); }
+        guide.appendChild(el('span',name,`menu-level-guide-${index}`));
+      });
+      panel.appendChild(guide);
+      const details = el('section',undefined,'menu-basic-details');
+      details.appendChild(el('h3','메뉴 기본 정보'));
       const selector = el('label','편집할 메뉴','menu-editor-field');
       const select = el('select'); select.setAttribute('aria-label','편집할 메뉴');
       this.fillSelect(select,this.data.menus.filter(row => !row._delete).map((row,i) => [row.key,row.name || `새 메뉴 ${i + 1}`]),menu.key);
       select.addEventListener('change',() => { this.selectedMenuKey = select.value; this.renderEditor(); this.updateCounts(); });
-      selector.appendChild(select); panel.appendChild(selector);
+      selector.appendChild(select); details.appendChild(selector);
       const fields = el('div',undefined,'menu-editor-fields');
       for (const col of this.fields('menus')) {
         const label = el('label',col.label,'menu-editor-field'), input = el('input');
@@ -319,6 +330,7 @@
           const before = this.data.options.length;
           this.setValue(menu,col,col.check ? input.checked : input.value);
           if (col.key === 'name') {
+            menuTitle.textContent = input.value || '새 메뉴';
             select.selectedOptions[0].textContent = input.value || '새 메뉴';
             const option = [...this.$('[data-editor-picker]').options].find(item => item.value === menu.key);
             if (option) option.textContent = input.value || '새 메뉴';
@@ -332,14 +344,15 @@
         });
         label.appendChild(input); fields.appendChild(label);
       }
-      panel.appendChild(fields);
+      details.appendChild(fields); panel.appendChild(details);
       const presets = el('div',undefined,'menu-editor-presets');
       for (const [name,kind] of [['＋ 아이스/핫','temperature'],['＋ 샷 추가','shots'],['＋ 직접 옵션 만들기','custom']]) {
         const button = el('button',name,'sheet-button'); button.type = 'button';
         button.addEventListener('click',() => { this.addEditorGroup(menu,kind); this.renderEditor(); this.updateCounts(); });
         presets.appendChild(button);
       }
-      panel.appendChild(el('p','옵션 이름 아래에 선택 항목·추가금액을 입력하고 기본으로 선택될 항목을 체크하세요.','sheet-help'));
+      panel.appendChild(el('h3','이 메뉴의 옵션','menu-options-title'));
+      panel.appendChild(el('p','온도·샷 추가처럼 메뉴에 붙는 설정이에요. 각 옵션 안에 고를 수 있는 항목을 넣어요.','sheet-help'));
       panel.appendChild(presets);
       const groups = el('div',undefined,'menu-editor-groups'); panel.appendChild(groups);
       this.renderEditorGroups(menu,groups);
@@ -364,7 +377,11 @@
       if (!grouped.size) container.appendChild(el('p','등록된 옵션이 없어요. 위 버튼으로 필요한 옵션을 추가해 주세요.','sheet-help'));
       for (const [key,rows] of grouped) {
         const first = rows[0], box = el('fieldset',undefined,'catalog-option-group'); box.dataset.optionGroup = key;
-        const legend = el('legend',first.group_name || '새 옵션'); box.appendChild(legend);
+        box.setAttribute('aria-label',first.group_name || '새 옵션');
+        const legend = el('legend');
+        const badge = el('span','옵션','option-level-badge'); badge.setAttribute('aria-hidden','true');
+        const optionTitle = el('span',first.group_name || '새 옵션','option-level-title');
+        legend.append(badge,optionTitle); box.appendChild(legend);
         const header = el('div',undefined,'menu-editor-fields');
         const field = (row,name,title,type,callback) => {
           const label = el('label',title,'menu-editor-field'), input = el(type === 'select' ? 'select' : 'input');
@@ -383,7 +400,7 @@
         for (const [name,title,type] of [['group_name','옵션 이름','text'],['mode','선택 방식','select'],['required','필수 선택','checkbox']]) {
           header.appendChild(field(first,name,title,type,value => {
             this.data.options.filter(row => row.menu_key === menu.key && row.group_key === key).forEach(row => { row[name] = value; });
-            if (name === 'group_name') legend.textContent = value || '새 옵션';
+            if (name === 'group_name') { optionTitle.textContent = value || '새 옵션'; box.setAttribute('aria-label',value || '새 옵션'); }
             if (name === 'mode' && value === 'single') {
               let kept = false;
               rows.forEach(row => { if (row.is_default) { row.is_default = !kept; kept = true; } });
@@ -400,8 +417,11 @@
           this.renderEditorGroups(menu,container); this.updateCounts();
         });
         header.appendChild(remove); box.appendChild(header);
-        rows.forEach(row => {
+        const choices = el('div',undefined,'catalog-choices');
+        choices.appendChild(el('h4','선택 항목','catalog-choices-title'));
+        rows.forEach((row,index) => {
           const line = el('div',undefined,'catalog-choice');
+          line.appendChild(el('span',`항목 ${index + 1}`,'choice-level-badge'));
           line.appendChild(field(row,'name','선택 항목','text',value => { row.name = value; }));
           line.appendChild(field(row,'extra_price','추가금액(원)','text',value => { row.extra_price = value; }));
           line.appendChild(field(row,'is_default','기본 선택','checkbox',value => {
@@ -417,14 +437,14 @@
             if (row.id) row._delete = true; else this.data.options = this.data.options.filter(item => item !== row);
             this.renderEditorGroups(menu,container); this.updateCounts();
           });
-          line.appendChild(removeChoice); box.appendChild(line);
+          line.appendChild(removeChoice); choices.appendChild(line);
         });
         const add = el('button','＋ 선택 항목 추가','sheet-button'); add.type = 'button';
         add.addEventListener('click',() => {
           this.data.options.push({...this.newRow('options'),menu_key:menu.key,group_key:key,group_name:first.group_name,mode:first.mode,required:first.required});
           this.renderEditorGroups(menu,container); this.updateCounts();
         });
-        box.appendChild(add); container.appendChild(box);
+        choices.appendChild(add); box.appendChild(choices); container.appendChild(box);
       }
     }
     readonlyValue(row,key) {
