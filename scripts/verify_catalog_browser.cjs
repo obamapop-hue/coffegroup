@@ -15,7 +15,7 @@ async function run(cfg){
   await page.screenshot({path:cfg.output+'/operator-'+item.width+'.png',fullPage:false});
   const nav=page.getByRole('navigation',{name:'운영자 관리 분류'});
   await nav.getByRole('link',{name:'주문 이력',exact:true}).click();
-  await page.getByRole('heading',{name:'최근 주문서',exact:true}).waitFor();
+  await page.getByRole('heading',{name:'주문 이력',exact:true}).waitFor();
   assert.equal(await page.locator('[data-sheet-app]').count(),0);
   await page.goto(cfg.base+'/cafes/'+item.cafe+'/manage/');
   await page.getByLabel('설정할 메뉴',{exact:true}).selectOption({label:'아메리카노'});

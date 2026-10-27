@@ -156,6 +156,11 @@ def operator(request):
 
     expire_due_rooms()
     tab = "orders" if request.GET.get("tab") == "orders" else "cafes"
+    history = {}
+    if tab == "orders":
+        from .order_history import order_history_context
+
+        history = order_history_context(request)
     return render(
         request,
         "accounts/operator.html",
@@ -164,7 +169,7 @@ def operator(request):
             "cafes": Cafe.objects.select_related("seller"),
             "form": CafeForm(),
             "sheet_data": cafe_state() if tab == "cafes" else None,
-            "recent_rooms": Room.objects.all()[:20] if tab == "orders" else [],
+            **history,
             "support_waiting_count": Ticket.objects.filter(status=Ticket.Status.WAITING).count(),
         },
     )

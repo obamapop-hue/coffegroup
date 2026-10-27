@@ -15,10 +15,10 @@ class OperatorTabsTests(TestCase):
     def test_cafe_and_history_tabs_do_not_render_each_others_workspaces(self):
         response = self.client.get(reverse("accounts:operator"))
         self.assertContains(response, "data-sheet-app")
-        self.assertNotContains(response, "<h2>최근 주문서</h2>")
+        self.assertNotContains(response, 'id="operator-history-title"')
         with patch("accounts.views.cafe_state", side_effect=AssertionError("unused")):
             response = self.client.get(reverse("accounts:operator"), {"tab": "orders"})
-        self.assertContains(response, "<h2>최근 주문서</h2>")
+        self.assertContains(response, 'id="operator-history-title"')
         self.assertNotContains(response, "data-sheet-app")
         self.assertIn("no-store", response.headers["Cache-Control"])
 

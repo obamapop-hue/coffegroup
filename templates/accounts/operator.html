@@ -6,7 +6,7 @@
 {% block dashboard_content %}
 {% include "accounts/operator_nav.html" with active=operator_tab %}
 {% if operator_tab == 'orders' %}
-<section class="account-panel"><h2>최근 주문서</h2>{% for room in recent_rooms %}<a class="history-item" href="{% url 'orders:detail' room.pk %}"><span>{{ room.cafe_snapshot.name }}<br><time>{{ room.created_at|date:"Y.m.d H:i" }}</time></span><span class="status-chip">{{ room.get_status_display }}</span></a>{% empty %}<p>아직 생성된 주문서가 없어요.</p>{% endfor %}</section>
+{% include "accounts/operator_order_history.html" %}
 {% else %}
 <h2 class="section-title">카페·판매자 관리</h2>
 <p class="sheet-intro">카페 정보와 판매자 연결을 표에서 한 번에 관리하세요. 연결코드를 비우면 판매자 연결이 해제돼요.</p>

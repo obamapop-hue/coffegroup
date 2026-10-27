@@ -1,0 +1,35 @@
+<section aria-labelledby="operator-history-title">
+  <h2 id="operator-history-title" class="section-title">주문 이력</h2>
+  <nav class="history-cafe-filter" aria-label="카페별 주문서">
+    {% for cafe in history_cafes %}<a href="{{ cafe.url }}" {% if cafe.selected %}aria-current="page"{% endif %}>{{ cafe.name }}</a>{% endfor %}
+  </nav>
+  <form method="get" class="history-order-search">
+    <input type="hidden" name="tab" value="orders">{{ history_form.cafe }}
+    <label>{{ history_form.name.label }}{{ history_form.name }}{{ history_form.name.errors }}</label>
+    <label>{{ history_form.date.label }}{{ history_form.date }}{{ history_form.date.errors }}</label>
+    <button class="primary-button" type="submit">조회</button>
+    <a class="text-button" href="{{ history_reset_url }}">검색 초기화</a>
+    {% if history_form.cafe.errors or history_form.non_field_errors %}<div class="sheet-error-summary" role="alert">검색 조건을 확인해 주세요.{{ history_form.cafe.errors }}{{ history_form.non_field_errors }}</div>{% endif %}
+  </form>
+  <p class="sheet-help">회원 이름은 주문한 총무의 닉네임으로 검색해요. 주문 날짜는 주문서를 만든 날짜(한국 시간)예요.</p>
+  <div class="history-results-heading"><h3>{% if selected_cafe %}{{ selected_cafe.name }} 주문서{% else %}전체 카페 주문서{% endif %}</h3><span>총 {{ history_page.paginator.count }}개</span></div>
+  <div class="operator-order-list">
+    {% for room in history_page %}
+    <a class="operator-order-card" href="{% url 'orders:detail' room.pk %}">
+      <div class="operator-order-card-heading"><time>{{ room.created_at|date:"Y.m.d H:i" }}</time><span class="status-chip">{{ room.get_status_display }}</span></div>
+      <h3>{{ room.cafe_snapshot.name|default:room.cafe.name }}</h3>
+      <dl>
+        <div class="history-order-member"><dt>주문 회원</dt><dd>{{ room.history_nickname }}</dd></div>
+        <div><dt>총 수량</dt><dd>총 {{ room.history_quantity }}잔</dd></div>
+        <div><dt>총금액</dt><dd>{{ room.history_amount }}원</dd></div>
+      </dl>
+      <span class="history-order-open">주문서 보기 →</span>
+    </a>
+    {% empty %}<p class="account-panel">조건에 맞는 주문서가 없어요.</p>{% endfor %}
+  </div>
+  {% if history_page.has_other_pages %}<nav class="pagination" aria-label="주문 이력 페이지">
+    {% if history_page.has_previous %}<a href="?{{ history_query }}&amp;page={{ history_page.previous_page_number }}">이전</a>{% endif %}
+    <span>{{ history_page.number }} / {{ history_page.paginator.num_pages }}</span>
+    {% if history_page.has_next %}<a href="?{{ history_query }}&amp;page={{ history_page.next_page_number }}">다음</a>{% endif %}
+  </nav>{% endif %}
+</section>
