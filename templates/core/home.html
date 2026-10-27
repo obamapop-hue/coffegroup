@@ -14,7 +14,7 @@
     <h1 id="hero-title">우리팀 커피 주문,<br>30초 컷!</h1>
     <form class="start-action" action="{% url 'accounts:start' 'organizer' %}" method="post">
       {% csrf_token %}
-      <button class="start-button" type="submit" {% if not kakao_ready %}disabled aria-describedby="service-status"{% endif %}><span class="start-button-size" aria-hidden="true">카카오로 시작하기</span><span class="start-button-label">카카오로 시작하기</span></button>
+      <button class="start-button" type="submit" {% if not kakao_ready %}disabled aria-describedby="service-status"{% endif %}>카카오로 시작하기</button>
     </form>
     {% if not kakao_ready %}<p class="service-status" id="service-status" role="status">카카오 로그인 연결을 준비하고 있어요.<br>잠시 후 다시 이용해 주세요.</p>{% endif %}
   </section>
