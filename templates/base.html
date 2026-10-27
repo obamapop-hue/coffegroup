@@ -34,13 +34,7 @@
     <a class="skip-link" href="#main">본문으로 건너뛰기</a>
     <div class="page-shell">
       <header class="site-header">
-        <a class="brand" href="{% url 'home' %}" aria-label="영차 홈">
-          <span class="brand-mark" aria-hidden="true">
-            <img src="{% static 'images/yeongcha-arm.png' %}" alt="" width="52" height="52">
-          </span>
-          <span>영차</span>
-          {% block brand_tagline %}{% endblock %}
-        </a>
+        {% include "core/brand.html" %}
         {% if request.user.is_authenticated %}
           <form class="header-account" action="{% url 'accounts:logout' %}" method="post">
             {% csrf_token %}

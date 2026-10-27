@@ -24,3 +24,4 @@
 @media(max-width: 600px) { .sheet-scroll-hint { display: block; } }
 .sheet-page .page-shell { max-width: 1640px; padding-left: 32px; padding-right: 32px; }
 @media(max-width: 600px) { .sheet-page .page-shell { padding-left: 20px; padding-right: 20px; } }
+@media(max-width: 360px) { .sheet-page .page-shell { padding-left: 16px; padding-right: 16px; } }
