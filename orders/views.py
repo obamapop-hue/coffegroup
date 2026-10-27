@@ -6,6 +6,7 @@ from django.db import transaction
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.html import format_html
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -40,8 +41,11 @@ def create(request, cafe_id):
         return redirect("accounts:organizer")
     messages.success(
         request,
-        f"주문방을 만들었어요. {timezone.localtime(room.expires_at):%H:%M}까지 "
-        "전송하지 않으면 주문서가 자동 폐기돼요.",
+        format_html(
+            '주문방을 만들었어요.<br><span class="order-expiry-time">{}</span>까지 '
+            "전송하지 않으면 주문서가 자동 폐기돼요.",
+            timezone.localtime(room.expires_at).strftime("%H:%M"),
+        ),
     )
     return redirect("orders:detail", room_id=room.pk)
 

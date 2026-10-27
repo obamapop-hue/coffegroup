@@ -3,12 +3,17 @@
 {% block dashboard_content %}
 {% if rooms %}<section class="account-panel"><h2>진행 중인 주문</h2>{% for room in rooms %}<a class="history-item" href="{% url 'orders:detail' room.pk %}"><span>{{ room.cafe_snapshot.name }}<br><time>{{ room.created_at|date:"m.d H:i" }}</time></span><span class="status-chip">{{ room.get_status_display }}</span></a>{% endfor %}</section>{% endif %}
 <section aria-labelledby="choose-cafe-title">
-  <h2 id="choose-cafe-title" class="section-title">함께 마실 카페를 골라보세요.</h2>
+  <h2 id="choose-cafe-title" class="section-title">카페를 선택하세요</h2>
   {% for cafe in cafes %}
-    <article class="account-panel">
-      <div class="panel-heading"><h2>{{ cafe.name }}</h2>{% if not cafe.is_open %}<span class="status-chip">영업종료</span>{% else %}<span class="status-chip is-open">영업중</span>{% endif %}</div>
-      <p>{{ cafe.address|default:"카페 주소 미등록" }} / {% if cafe.phone %}<a href="tel:{{ cafe.phone }}">{{ cafe.phone }}</a>{% else %}카페 전화번호 미등록{% endif %}</p>
-      <form action="{% url 'orders:create' cafe.pk %}" method="post">{% csrf_token %}<button class="primary-button" type="submit" {% if not cafe.is_open or request.user.ordering_suspended %}disabled{% endif %}>주문하기</button></form>
+    <article class="account-panel cafe-card">
+      <div class="cafe-card-info">
+        <h2>{{ cafe.name }}</h2>
+        <p>{{ cafe.address|default:"카페 주소 미등록" }} / {% if cafe.phone %}<a href="tel:{{ cafe.phone }}">{{ cafe.phone }}</a>{% else %}카페 전화번호 미등록{% endif %}</p>
+      </div>
+      <div class="cafe-card-actions">
+        {% if not cafe.is_open %}<span class="status-chip">영업종료</span>{% else %}<span class="status-chip is-open">영업중</span>{% endif %}
+        <form action="{% url 'orders:create' cafe.pk %}" method="post">{% csrf_token %}<button class="primary-button" type="submit" {% if not cafe.is_open or request.user.ordering_suspended %}disabled{% endif %}>주문하기</button></form>
+      </div>
     </article>
   {% empty %}<div class="account-panel empty-state"><p>함께할 카페를 준비하고 있어요.</p></div>{% endfor %}
 </section>

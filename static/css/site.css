@@ -83,6 +83,7 @@ h1 { margin: 0; font-size: calc(clamp(42px, 4.8vw, 62px) + var(--font-step)); li
 .text-button { font-weight: 600; padding: 8px 0; border: 0; color: var(--accent); background: none; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .flash-messages { padding: 12px 16px; margin: 20px 0 0; border: 1px solid var(--line); border-radius: 8px; font-size: calc(14px + var(--font-step)); line-height: 1.7; }
 .flash-messages p { margin: 0; }
+.order-expiry-time { color: var(--accent); }
 .account-main { padding: 44px 0 64px; min-height: 62vh; }
 .account-main h1 { font-size: calc(clamp(26px, 4vw, 36px) + var(--font-step)); line-height: 1.4; letter-spacing: -1.2px; overflow-wrap: anywhere; }
 .role-label { color: var(--accent); font-weight: 600; font-size: calc(13px + var(--font-step)); margin: 0 0 10px; }
@@ -90,6 +91,11 @@ h1 { margin: 0; font-size: calc(clamp(42px, 4.8vw, 62px) + var(--font-step)); li
 .account-panel { padding: 24px; margin-bottom: 20px; border: 1px solid var(--line); border-radius: 12px; overflow-wrap: anywhere; }
 .account-panel h2 { font-size: calc(19px + var(--font-step)); margin: 0 0 14px; letter-spacing: -.5px; }
 .account-panel p,.account-code p,.muted-text { color: var(--muted); font-size: calc(14px + var(--font-step)); line-height: 1.8; }
+.cafe-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: start; }
+.cafe-card-info h2 { margin: 0 0 18px; }
+.cafe-card-info p { margin: 0; }
+.cafe-card-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.cafe-card-actions form { margin: 0; }
 .empty-state { padding: 36px 24px; }
 .panel-heading { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
 .panel-heading h2 { margin: 0; }
