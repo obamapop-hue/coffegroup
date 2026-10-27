@@ -3,7 +3,7 @@
 {% block dashboard_content %}
 {% if rooms %}<section class="account-panel"><h2>진행 중인 주문</h2>{% for room in rooms %}<a class="history-item" href="{% url 'orders:detail' room.pk %}"><span>{{ room.cafe_snapshot.name }}<br><time>{{ room.created_at|date:"m.d H:i" }}</time></span><span class="status-chip">{{ room.get_status_display }}</span></a>{% endfor %}</section>{% endif %}
 <section aria-labelledby="choose-cafe-title">
-  <h2 id="choose-cafe-title" class="section-title">카페를 선택하세요</h2>
+  <h2 id="choose-cafe-title" class="section-title">카페를 선택하세요.</h2>
   {% for cafe in cafes %}
     <article class="account-panel cafe-card">
       <div class="cafe-card-info">

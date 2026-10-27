@@ -69,6 +69,7 @@ h1 { margin: 0; font-size: calc(clamp(42px, 4.8vw, 62px) + var(--font-step)); li
 .copy-code-button[hidden] { display: none; }.copy-code-button:hover { background: #fff5f4; }.copy-code-button:disabled { opacity: .6; cursor: wait; }.copy-code-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .account-panel .copy-status { min-height: 22px; margin: 8px 0 0; color: var(--muted); font-size: calc(12px + var(--font-step)); }
 .section-title { margin: 28px 0 20px; font-size: calc(22px + var(--font-step)); letter-spacing: -.6px; }
+#choose-cafe-title { font-weight: 400; }
 .history-item,.menu-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--line); font-size: calc(14px + var(--font-step)); line-height: 1.8; color: inherit; text-decoration: none; }
 .history-item time { color: var(--muted); font-size: calc(12px + var(--font-step)); }.history-item .status-chip { flex-shrink: 0; }
 .history-item span:first-child,.menu-row>span { min-width: 0; overflow-wrap: anywhere; }
