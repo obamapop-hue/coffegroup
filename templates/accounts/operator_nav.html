@@ -1,0 +1,7 @@
+<nav class="operator-tabs" aria-label="운영자 관리 분류">
+  <a href="{% url 'accounts:operator' %}" {% if active == 'cafes' %}aria-current="page"{% endif %}>카페·판매자</a>
+  <a href="{% url 'accounts:members' %}" {% if active == 'members' %}aria-current="page"{% endif %}>회원 관리</a>
+  <a href="{% url 'support:operator-inbox' %}" {% if active == 'support' %}aria-current="page"{% endif %}>사용자 문의{% if support_waiting_count %} · {{ support_waiting_count }}건 대기{% endif %}</a>
+  <a href="{% url 'accounts:operator' %}?tab=orders" {% if active == 'orders' %}aria-current="page"{% endif %}>주문 이력</a>
+  <a href="{% url 'accounts:privacy-preview' %}" {% if active == 'privacy' %}aria-current="page"{% endif %}>개인정보 처리방침</a>
+</nav>

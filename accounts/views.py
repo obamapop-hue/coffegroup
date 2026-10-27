@@ -115,7 +115,13 @@ def profile(request):
 @require_GET
 @role_required("operator")
 def privacy_preview(request):
-    return render(request, "accounts/privacy_preview.html")
+    from .models import KakaoUnlinkJob
+
+    return render(
+        request,
+        "accounts/privacy_preview.html",
+        {"unlink_pending_count": KakaoUnlinkJob.objects.count()},
+    )
 
 
 @never_cache
@@ -148,19 +154,18 @@ def seller(request):
 def operator(request):
     from support.models import Ticket
 
-    from .models import KakaoUnlinkJob
-
     expire_due_rooms()
+    tab = "orders" if request.GET.get("tab") == "orders" else "cafes"
     return render(
         request,
         "accounts/operator.html",
         {
+            "operator_tab": tab,
             "cafes": Cafe.objects.select_related("seller"),
             "form": CafeForm(),
-            "sheet_data": cafe_state(),
-            "recent_rooms": Room.objects.all()[:20],
+            "sheet_data": cafe_state() if tab == "cafes" else None,
+            "recent_rooms": Room.objects.all()[:20] if tab == "orders" else [],
             "support_waiting_count": Ticket.objects.filter(status=Ticket.Status.WAITING).count(),
-            "unlink_pending_count": KakaoUnlinkJob.objects.count(),
         },
     )
 
@@ -177,7 +182,7 @@ def cafe_create(request):
     return render(
         request,
         "accounts/operator.html",
-        {"sheet_data": cafe_state(), "form": form},
+        {"operator_tab": "cafes", "sheet_data": cafe_state(), "form": form},
         status=400,
     )
 

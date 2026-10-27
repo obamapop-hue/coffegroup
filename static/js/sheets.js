@@ -61,6 +61,7 @@
       this.active = root.dataset.kind === 'cafes' ? 'rows' : 'menus';
       this.filters = {rows:{search:'',status:'all'}, menus:{search:'',status:'all'}, options:{search:'',status:'all',menu:''}};
       this.errors = []; this.saving = false; this.sellerCache = new Map();
+      this.selectedMenuKey = null;
       this.bind(); this.render();
     }
     $(selector) { return root.querySelector(selector); }
@@ -90,14 +91,21 @@
     }
     dirty() { return Object.values(this.counts()).some(Boolean); }
     bind() {
+      this.$('[data-editor-picker]')?.addEventListener('change',event => {
+        this.selectedMenuKey = event.target.value || null; this.renderEditor(); this.updateCounts();
+        if (this.selectedMenuKey) this.$('[data-menu-editor]').scrollIntoView({block:'start',behavior:'smooth'});
+      });
       root.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => {
         this.active = button.dataset.tab; this.clearFilters(); this.render();
       }));
       root.querySelectorAll('[data-add]').forEach(button => button.addEventListener('click', () => {
-        for (let i = 0; i < Number(button.dataset.add); i++) this.list().push(this.newRow());
+        for (let i = 0; i < Number(button.dataset.add); i++) {
+          const row = this.newRow(); this.list().push(row);
+          if (this.active === 'menus' && Number(button.dataset.add) === 1) this.selectedMenuKey = row.key;
+        }
         this.filters[this.active].search = ''; this.filters[this.active].status = 'all';
         this.render();
-        this.$('[data-body] tr:last-child input, [data-body] tr:last-child select')?.focus();
+        (this.active === 'menus' && Number(button.dataset.add) === 1 ? this.$('[data-menu-editor] [data-menu-field="name"]') : this.$('[data-body] tr:last-child input, [data-body] tr:last-child select'))?.focus();
       }));
       this.$('[data-search]').addEventListener('input', event => { this.filters[this.active].search = event.target.value; this.renderRows(); });
       this.$('[data-filter]').addEventListener('change', event => { this.filters[this.active].status = event.target.value; this.renderRows(); });
@@ -174,12 +182,17 @@
       select.value = selected;
     }
     render() {
+      if (this.$('[data-editor-picker]')) {
+        this.$('[data-editor-picker-label]').hidden = this.active !== 'menus';
+        this.fillSelect(this.$('[data-editor-picker]'),[['','메뉴를 선택하세요'],...this.data.menus.filter(row => !row._delete).map((row,i) => [row.key,row.name || `새 메뉴 ${i + 1}`])],this.selectedMenuKey || '');
+      }
       root.querySelectorAll('[data-tab]').forEach(button => button.setAttribute('aria-selected',String(button.dataset.tab === this.active)));
       if (this.active !== 'rows') {
         this.$('#sheet-panel').setAttribute('role','tabpanel');
         this.$('#sheet-panel').setAttribute('aria-labelledby',`${this.active}-tab`);
       }
       this.$('[data-search]').value = this.filters[this.active].search;
+      this.$('[data-search]').placeholder = this.active === 'rows' ? '카페명·연결코드 검색' : this.active === 'menus' ? '메뉴명·분류 검색' : '옵션 이름·선택 항목 검색';
       const statuses = [['all','전체'],['changed','변경된 행']];
       if (this.active === 'rows') statuses.push(['linked','판매자 연결됨'],['unlinked','판매자 미연결'],['open','영업중'],['closed','영업종료']);
       if (this.active === 'menus') statuses.push(['shown','표시 중'],['hidden','숨김'],['soldout','품절']);
@@ -189,8 +202,11 @@
       this.$('[data-help]').textContent = this.active === 'rows'
         ? '카페명 → 전화번호 → 주소 → 연결코드 순서로 엑셀 내용을 붙여넣으세요. 연결코드를 비우고 저장하면 판매자 연결이 해제돼요. 영업상태는 판매자 로그인·로그아웃으로 바뀌어요.'
         : this.active === 'menus'
-        ? '분류 → 메뉴명 → 가격 → 메뉴판 표시 순서로 붙여넣으세요. 새 메뉴에는 아이스/핫·샷 +0 옵션이 생겨요. 옵션 셀을 누르면 같은 화면에서 설정할 수 있어요. 삭제는 메뉴판 숨김으로 처리돼요.'
+        ? '행 추가 또는 메뉴의 설정 버튼을 누르면 이름·가격·옵션을 함께 편집해요. 마지막에 메뉴·옵션 함께 저장을 눌러 주세요. 표에는 엑셀 내용을 붙여넣을 수도 있어요.'
         : '메뉴 → 옵션 그룹 → 선택 방식 → 필수 선택 → 선택 항목 → 추가금액 → 기본 선택 순서예요. 같은 그룹의 이름·선택 방식·필수 여부는 함께 변경돼요. 체크 값은 예/아니오 또는 O/X로 붙여넣을 수 있어요.';
+      root.querySelectorAll('[data-add]').forEach(button => {
+        button.textContent = this.active === 'menus' ? (button.dataset.add === '1' ? '＋ 메뉴 추가' : '10개 메뉴 추가') : (button.dataset.add === '1' ? '＋ 행 추가' : '10행 추가');
+      });
       const header = el('tr'); header.appendChild(el('th','행 / 상태'));
       columns[this.active].forEach((col,index) => header.appendChild(el('th',col.label,index === 0 && this.active !== 'menus' ? 'sheet-freeze' : '')));
       header.appendChild(el('th','관리')); this.$('[data-head]').replaceChildren(header);
@@ -209,7 +225,7 @@
       this.$('[data-row-count]').textContent = filtered
         ? `필터 적용: ${rows.length}행 표시 · 전체 ${this.list().length}행`
         : `전체 ${rows.length}행`;
-      this.updateCounts(); this.paintErrors();
+      this.renderEditor(); this.updateCounts(); this.paintErrors();
     }
     renderRow(row, index) {
       const tr = el('tr'); tr.dataset.key = row.key;
@@ -224,9 +240,8 @@
             const options = this.optionsForMenu(row.key), groups = new Set(options.map(item => item.group_key));
             const button = el('button',`옵션 ${groups.size}개`, 'option-button'); button.type = 'button';
             button.addEventListener('click', () => {
-              this.active = 'options'; this.clearFilters(); this.render();
-              const firstOption = this.optionsForMenu(row.key)[0];
-              if (firstOption) [...this.$('[data-body]').children].find(tr => tr.dataset.key === firstOption.key)?.querySelector('select')?.focus();
+              this.selectedMenuKey = row.key; this.renderEditor(); this.updateCounts();
+              this.$('[data-menu-editor]').scrollIntoView({block:'start',behavior:'smooth'});
             });
             td.append(button);
             const defaults = options.filter(item => item.is_default).map(item => `${item.group_name}: ${item.name}`).join(' · ');
@@ -243,6 +258,7 @@
             this.setValue(row,col,col.check ? input.checked : input.value);
             this.errors = this.errors.filter(error => error.key !== row.key || error.field !== col.key);
             this.updateCounts(); this.paintErrors();
+            if (this.active === 'menus' && this.selectedMenuKey === row.key) this.renderEditor();
           });
           input.addEventListener('blur', () => {
             if (col.key === 'seller_code') this.resolveSeller(row);
@@ -276,6 +292,141 @@
       });
       actions.appendChild(button); tr.appendChild(actions); return tr;
     }
+    renderEditor() {
+      const panel = this.$('[data-menu-editor]'); if (!panel) return;
+      const menu = this.data.menus.find(row => row.key === this.selectedMenuKey && !row._delete);
+      panel.hidden = this.active !== 'menus' || !menu;
+      if (panel.hidden) return;
+      panel.replaceChildren();
+      const heading = el('div',undefined,'menu-editor-heading');
+      heading.appendChild(el('h2','메뉴와 옵션 함께 설정'));
+      const close = el('button','설정 접기','text-button'); close.type = 'button';
+      close.addEventListener('click',() => { this.selectedMenuKey = null; panel.hidden = true; this.updateCounts(); });
+      heading.appendChild(close); panel.appendChild(heading);
+      const selector = el('label','편집할 메뉴','menu-editor-field');
+      const select = el('select'); select.setAttribute('aria-label','편집할 메뉴');
+      this.fillSelect(select,this.data.menus.filter(row => !row._delete).map((row,i) => [row.key,row.name || `새 메뉴 ${i + 1}`]),menu.key);
+      select.addEventListener('change',() => { this.selectedMenuKey = select.value; this.renderEditor(); this.updateCounts(); });
+      selector.appendChild(select); panel.appendChild(selector);
+      const fields = el('div',undefined,'menu-editor-fields');
+      for (const col of this.fields('menus')) {
+        const label = el('label',col.label,'menu-editor-field'), input = el('input');
+        input.dataset.menuField = col.key; input.setAttribute('aria-label',col.label);
+        input.type = col.check ? 'checkbox' : 'text';
+        if (col.check) input.checked = menu[col.key]; else input.value = menu[col.key];
+        if (col.money) input.inputMode = 'numeric';
+        input.addEventListener(col.check ? 'change' : 'input',() => {
+          const before = this.data.options.length;
+          this.setValue(menu,col,col.check ? input.checked : input.value);
+          if (col.key === 'name') {
+            select.selectedOptions[0].textContent = input.value || '새 메뉴';
+            const option = [...this.$('[data-editor-picker]').options].find(item => item.value === menu.key);
+            if (option) option.textContent = input.value || '새 메뉴';
+          }
+          const tr = [...this.$('[data-body]').children].find(row => row.dataset.key === menu.key);
+          const target = tr?.querySelector(`[data-field="${col.key}"] input`);
+          if (target) { if (col.check) target.checked = input.checked; else target.value = input.value; }
+          if (this.data.options.length !== before) this.renderEditorGroups(menu,groups);
+          this.errors = this.errors.filter(error => error.key !== menu.key || error.field !== col.key);
+          this.updateCounts(); this.paintErrors();
+        });
+        label.appendChild(input); fields.appendChild(label);
+      }
+      panel.appendChild(fields);
+      const presets = el('div',undefined,'menu-editor-presets');
+      for (const [name,kind] of [['＋ 아이스/핫','temperature'],['＋ 샷 추가','shots'],['＋ 직접 옵션 만들기','custom']]) {
+        const button = el('button',name,'sheet-button'); button.type = 'button';
+        button.addEventListener('click',() => { this.addEditorGroup(menu,kind); this.renderEditor(); this.updateCounts(); });
+        presets.appendChild(button);
+      }
+      panel.appendChild(el('p','옵션 이름 아래에 선택 항목·추가금액을 입력하고 기본으로 선택될 항목을 체크하세요.','sheet-help'));
+      panel.appendChild(presets);
+      const groups = el('div',undefined,'menu-editor-groups'); panel.appendChild(groups);
+      this.renderEditorGroups(menu,groups);
+      panel.appendChild(el('p','위의 메뉴·옵션 함께 저장을 누르면 이 메뉴와 다른 변경사항이 함께 저장돼요.','sheet-help'));
+    }
+    addEditorGroup(menu,kind) {
+      const name = {temperature:'아이스 / 핫',shots:'샷 추가',custom:''}[kind];
+      if (name && this.data.options.some(row => row.menu_key === menu.key && row.group_name === name && !row._delete)) {
+        this.result('이미 있는 옵션에서 선택 항목을 추가하거나 수정해 주세요.'); return;
+      }
+      const group = uid('new-group');
+      const choices = kind === 'temperature' ? ['아이스','핫'] : kind === 'shots' ? ['샷 +0','샷 +1'] : [''];
+      choices.forEach((value,i) => this.data.options.push({...this.newRow('options'),menu_key:menu.key,group_key:group,group_name:name,name:value,is_default:i === 0 && kind !== 'custom'}));
+    }
+    renderEditorGroups(menu,container) {
+      container.replaceChildren();
+      const grouped = new Map();
+      for (const row of this.data.options.filter(item => item.menu_key === menu.key && !item._delete)) {
+        if (!grouped.has(row.group_key)) grouped.set(row.group_key,[]);
+        grouped.get(row.group_key).push(row);
+      }
+      if (!grouped.size) container.appendChild(el('p','등록된 옵션이 없어요. 위 버튼으로 필요한 옵션을 추가해 주세요.','sheet-help'));
+      for (const [key,rows] of grouped) {
+        const first = rows[0], box = el('fieldset',undefined,'catalog-option-group'); box.dataset.optionGroup = key;
+        const legend = el('legend',first.group_name || '새 옵션'); box.appendChild(legend);
+        const header = el('div',undefined,'menu-editor-fields');
+        const field = (row,name,title,type,callback) => {
+          const label = el('label',title,'menu-editor-field'), input = el(type === 'select' ? 'select' : 'input');
+          label.dataset.optionKey = row.key; label.dataset.optionField = name;
+          input.setAttribute('aria-label',title);
+          if (type === 'select') this.fillSelect(input,[['single','하나 선택'],['multiple','여러 개 선택']],row[name]);
+          else { input.type = type; if (type === 'checkbox') input.checked = row[name]; else input.value = row[name]; }
+          if (name === 'extra_price') input.inputMode = 'numeric';
+          input.addEventListener(type === 'checkbox' || type === 'select' ? 'change' : 'input',() => {
+            callback(type === 'checkbox' ? input.checked : input.value);
+            this.errors = this.errors.filter(error => error.key !== row.key || error.field !== name);
+            this.updateCounts(); this.paintErrors();
+          });
+          label.appendChild(input); return label;
+        };
+        for (const [name,title,type] of [['group_name','옵션 이름','text'],['mode','선택 방식','select'],['required','필수 선택','checkbox']]) {
+          header.appendChild(field(first,name,title,type,value => {
+            this.data.options.filter(row => row.menu_key === menu.key && row.group_key === key).forEach(row => { row[name] = value; });
+            if (name === 'group_name') legend.textContent = value || '새 옵션';
+            if (name === 'mode' && value === 'single') {
+              let kept = false;
+              rows.forEach(row => { if (row.is_default) { row.is_default = !kept; kept = true; } });
+              this.renderEditorGroups(menu,container);
+            }
+          }));
+        }
+        const remove = el('button','옵션 삭제','text-button'); remove.type = 'button';
+        remove.addEventListener('click',() => {
+          this.data.options = this.data.options.filter(row => {
+            if (row.menu_key !== menu.key || row.group_key !== key) return true;
+            if (row.id) { row._delete = true; return true; } return false;
+          });
+          this.renderEditorGroups(menu,container); this.updateCounts();
+        });
+        header.appendChild(remove); box.appendChild(header);
+        rows.forEach(row => {
+          const line = el('div',undefined,'catalog-choice');
+          line.appendChild(field(row,'name','선택 항목','text',value => { row.name = value; }));
+          line.appendChild(field(row,'extra_price','추가금액(원)','text',value => { row.extra_price = value; }));
+          line.appendChild(field(row,'is_default','기본 선택','checkbox',value => {
+            if (value && first.mode === 'single') {
+              rows.forEach(peer => { peer.is_default = false; });
+              box.querySelectorAll('[data-option-field="is_default"] input').forEach(input => { input.checked = false; });
+            }
+            row.is_default = value;
+            line.querySelector('[data-option-field="is_default"] input').checked = value;
+          }));
+          const removeChoice = el('button','항목 삭제','text-button'); removeChoice.type = 'button';
+          removeChoice.addEventListener('click',() => {
+            if (row.id) row._delete = true; else this.data.options = this.data.options.filter(item => item !== row);
+            this.renderEditorGroups(menu,container); this.updateCounts();
+          });
+          line.appendChild(removeChoice); box.appendChild(line);
+        });
+        const add = el('button','＋ 선택 항목 추가','sheet-button'); add.type = 'button';
+        add.addEventListener('click',() => {
+          this.data.options.push({...this.newRow('options'),menu_key:menu.key,group_key:key,group_name:first.group_name,mode:first.mode,required:first.required});
+          this.renderEditorGroups(menu,container); this.updateCounts();
+        });
+        box.appendChild(add); container.appendChild(box);
+      }
+    }
     readonlyValue(row,key) {
       if (key === 'seller_name') return row.seller_code ? row.seller_name || '코드 확인 대기' : '미연결';
       if (key === 'is_open') return row.is_open ? '영업중' : '영업종료';
@@ -303,18 +454,22 @@
       if (target) row.group_key = target.group_key;
     }
     updateCounts() {
+      if (this.$('[data-editor-picker]')) this.$('[data-editor-picker]').value = this.selectedMenuKey || '';
       const counts = this.counts();
       this.$('[data-changes]').textContent = this.dirty() ? `추가 ${counts.new} · 수정 ${counts.edited} · 삭제 예정 ${counts.deleted}` : '변경사항 없음';
       this.$('[data-save]').disabled = !this.dirty() || this.saving;
       this.$('[data-reset]').disabled = this.saving;
       for (const tr of this.$('[data-body]').children) {
         const row = this.list().find(item => item.key === tr.dataset.key); if (!row) continue;
-        const status = this.status(row);
+        let status = this.status(row);
+        if (this.active === 'menus' && status === 'saved' && this.data.options.some(item => item.menu_key === row.key && !['saved','blank'].includes(this.status(item,'options')))) status = 'edited';
         tr.className = `row-${status}`;
         tr.querySelector('.sheet-row-status').textContent = {saved:'저장됨',new:'추가',edited:'수정',deleted:'삭제 예정',blank:'입력 대기'}[status];
         if (this.active === 'menus') {
           const options = this.optionsForMenu(row.key);
-          tr.querySelector('.option-button').textContent = `옵션 ${new Set(options.map(item => item.group_key)).size}개`;
+          const button = tr.querySelector('.option-button');
+          button.textContent = `메뉴·옵션 설정 · ${new Set(options.map(item => item.group_key)).size}개`;
+          button.setAttribute('aria-expanded',String(this.selectedMenuKey === row.key && this.active === 'menus'));
           tr.querySelector('.sheet-option-summary').textContent = options.filter(item => item.is_default).map(item => `${item.group_name}: ${item.name}`).join(' · ') || '기본값 없음';
         }
         if (this.active === 'rows') {
@@ -386,6 +541,25 @@
       this.result(`${affected.length}행을 붙여넣었어요. 내용을 확인한 뒤 변경사항 저장을 눌러 주세요.`);
     }
     paintErrors() {
+      const editor = this.$('[data-menu-editor]');
+      if (editor) {
+        editor.querySelectorAll('.invalid-cell').forEach(node => node.classList.remove('invalid-cell'));
+        editor.querySelectorAll('.sheet-cell-error').forEach(node => node.remove());
+        editor.querySelectorAll('[aria-invalid]').forEach(node => node.removeAttribute('aria-invalid'));
+        for (const error of editor.hidden ? [] : this.errors) {
+          let target;
+          if (error.sheet === 'menus' && error.key === this.selectedMenuKey) target = [...editor.querySelectorAll('[data-menu-field]')].find(node => node.dataset.menuField === error.field)?.parentElement;
+          if (error.sheet === 'options') {
+            target = [...editor.querySelectorAll('[data-option-key]')].find(node => node.dataset.optionKey === error.key && node.dataset.optionField === error.field);
+            if (!target) {
+              const row = this.data.options.find(item => item.key === error.key);
+              const group = [...editor.querySelectorAll('[data-option-group]')].find(node => node.dataset.optionGroup === row?.group_key);
+              target = [...(group?.querySelectorAll('[data-option-field]') || [])].find(node => node.dataset.optionField === error.field);
+            }
+          }
+          if (target) { target.classList.add('invalid-cell'); target.appendChild(el('span',error.message,'sheet-cell-error')); target.querySelector('input,select')?.setAttribute('aria-invalid','true'); }
+        }
+      }
       for (const cell of this.$('[data-body]').querySelectorAll('td')) {
         cell.classList.remove('invalid-cell'); cell.querySelector('.sheet-cell-error')?.remove();
         cell.querySelector('input,select')?.removeAttribute('aria-invalid');
@@ -401,7 +575,12 @@
     showErrors(errors) {
       this.errors = errors;
       const first = errors.find(error => error.sheet && error.key);
-      if (first) { this.active = first.sheet; this.filters[this.active] = {search:'',status:'all',menu:''}; this.render(); }
+      if (first) {
+        if (first.sheet === 'options' && this.active === 'menus') {
+          this.selectedMenuKey = this.data.options.find(row => row.key === first.key)?.menu_key || this.selectedMenuKey;
+        } else this.active = first.sheet;
+        this.filters[this.active] = {search:'',status:'all',menu:''}; this.render();
+      }
       else this.paintErrors();
       const input = this.$('.invalid-cell input, .invalid-cell select');
       if (input) { input.focus({preventScroll:true}); input.scrollIntoView({block:'nearest',inline:'nearest'}); }
@@ -433,9 +612,13 @@
       try {
         const result = await this.request(root.dataset.url,payload);
         if (result.menu_keys && this.filters.options.menu) this.filters.options.menu = result.menu_keys[this.filters.options.menu] || this.filters.options.menu;
+        if (result.menu_keys && this.selectedMenuKey) this.selectedMenuKey = result.menu_keys[this.selectedMenuKey] || this.selectedMenuKey;
         this.load(result); this.errors = []; this.render(); this.result('변경사항을 모두 저장했어요. 표에 표시된 내용이 현재 등록 상태예요.');
       } catch (error) { this.showErrors(error.cells || [{message:error.message}]); }
-      finally { this.saving = false; this.$('[data-sheet-controls]').disabled = false; this.updateCounts(); }
+      finally {
+        this.saving = false; this.$('[data-sheet-controls]').disabled = false; this.updateCounts();
+        if (this.errors.length) this.$('.invalid-cell input, .invalid-cell select')?.focus({preventScroll:true});
+      }
     }
   }
   new Sheet();

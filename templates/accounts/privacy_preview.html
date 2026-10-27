@@ -4,6 +4,7 @@
 {% block extra_styles %}<link rel="stylesheet" href="{% static 'css/privacy.css' %}">{% endblock %}
 {% block dashboard_title %}개인정보 처리방침{% endblock %}
 {% block dashboard_content %}
+{% include "accounts/operator_nav.html" with active="privacy" %}
 <aside class="privacy-review-note" aria-label="공개 전 검토 안내">
   <strong>운영자 확인용 · 아직 공개하지 않은 초안</strong>
   <p>아래 문구는 검토용입니다. 미정 항목을 확정한 뒤 공개합니다.</p>
@@ -78,6 +79,7 @@
 </article>
 <details class="account-panel privacy-operator-notes">
   <summary>운영자 확인 사항 · 공개 전 정리할 내용</summary>
+  {% if unlink_pending_count %}<p role="status">카카오 연결 해제 재시도 {{ unlink_pending_count }}건이 있어요. 사이트 회원 정보는 삭제됐으며 연결 해제 확인을 기다리고 있어요.</p>{% endif %}
   <h2>공개 전 확정할 내용</h2>
   <ul>
     <li>주문 닉네임을 계속 보관하는 목적·기간·처리 근거, 개인정보 삭제 요청 처리 기준</li>
