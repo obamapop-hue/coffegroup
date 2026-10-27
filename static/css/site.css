@@ -31,14 +31,14 @@ a { color: inherit; }
 .skip-link { position: absolute; left: 16px; top: -80px; padding: 12px; background: #fff; z-index: 10; }
 .skip-link:focus { top: 12px; }
 .site-header { --brand-name-size: calc(29.9px + var(--font-step)); --brand-mark-size: 52px; --brand-tagline-size: calc((13px + var(--font-step)) * 1.5); container-type: inline-size; min-height: 104px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 20px; padding: 16px 0; border-bottom: 1px solid var(--line); }
-.brand { display: inline-flex; flex-shrink: 0; max-width: 100%; gap: 10px; align-items: flex-end; text-decoration: none; color: var(--accent); font-size: var(--brand-name-size); font-weight: 700; letter-spacing: -1px; white-space: nowrap; }
-.brand-name { flex-shrink: 0; }
-.brand-mark { flex-shrink: 0; width: var(--brand-mark-size); height: var(--brand-mark-size); display: flex; align-items: center; justify-content: center; }
+.brand { display: inline-grid; flex-shrink: 0; max-width: 100%; grid-template-columns: var(--brand-mark-size) max-content; gap: 6px 10px; align-items: center; justify-items: start; text-decoration: none; color: var(--accent); font-size: var(--brand-name-size); font-weight: 700; letter-spacing: -1px; white-space: nowrap; }
+.brand-name { grid-column: 2; grid-row: 2; font-weight: 900; }
+.brand-mark { grid-column: 1; grid-row: 2; width: var(--brand-mark-size); height: var(--brand-mark-size); display: flex; align-items: center; justify-content: center; }
 .brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
-/* Reserve space for the arm, two logo letters and both gaps; fit the fixed tagline on one line. */
-.brand-tagline { align-self: flex-end; margin-left: 20px; color: #000; font-size: calc(var(--brand-tagline-size) - 1pt); font-size: calc(min(var(--brand-tagline-size), calc((100cqw - var(--brand-mark-size) - var(--brand-name-size) * 2 - 40px) / 12)) - 1pt); font-weight: 700; font-style: normal; letter-spacing: -.3px; line-height: 1.2; white-space: nowrap; }
+/* Keep the approved responsive text size when moving the tagline above the logo. */
+.brand-tagline { grid-column: 1 / -1; grid-row: 1; color: #000; font-size: calc(var(--brand-tagline-size) - 1pt); font-size: calc(min(var(--brand-tagline-size), calc((100cqw - var(--brand-mark-size) - var(--brand-name-size) * 2 - 40px) / 12)) - 1pt); font-weight: 700; font-style: normal; letter-spacing: -.3px; line-height: 1.2; white-space: nowrap; }
 h1 { margin: 0; font-size: calc(clamp(42px, 4.8vw, 62px) + var(--font-step)); line-height: 1.24; font-weight: 700; letter-spacing: -3px; word-break: keep-all; }
-.hero { display: grid; grid-template-columns: minmax(0, max-content) max-content; justify-content: start; align-items: center; gap: 16px 28px; padding: 42px 0 48px; }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) max-content; align-items: center; gap: 16px 28px; padding: 42px 0 48px; }
 .hero h1 { font-size: calc(clamp(24px, 3vw, 34px) + var(--font-step)); line-height: 1.5; letter-spacing: -.8px; }
 .start-action { margin: 0; }
 .start-button { display: inline-flex; align-items: center; justify-content: center; min-height: 54px; padding: 12px 24px; background: var(--accent); color: #fff; border: 1px solid var(--accent); border-radius: 8px; font-weight: 600; font-size: calc((14px + var(--font-step)) * 1.3); line-height: 1.3; white-space: nowrap; cursor: pointer; }
@@ -122,7 +122,7 @@ h1 { margin: 0; font-size: calc(clamp(42px, 4.8vw, 62px) + var(--font-step)); li
   .hero h1 { font-size: calc(clamp(18px, 4.4vw, 24px) + var(--font-step)); letter-spacing: -.6px; }
   .start-button { min-height: 48px; padding: 10px 12px; font-size: calc((12px + var(--font-step)) * 1.3); }
   .service-status { font-size: calc(10px + var(--font-step)); }
-  .header-account { flex: 1; min-width: 0; font-size: calc(11px + var(--font-step)); gap: 3px 8px; }
+  .header-account { flex: 1 0 100%; min-width: 0; font-size: calc(11px + var(--font-step)); gap: 3px 8px; }
   .account-main { padding: 30px 0 40px; }.account-panel { padding: 20px; }.stack-form { max-width: none; }.stack-form .primary-button { width: 100%; }
   .how-it-works { padding: 24px 0; }
   .steps { --step-title-size: calc(clamp(12px, 3.35vw, 16px) + var(--font-step)); gap: 10px; }.steps li,.steps li:first-child { padding: 0; border: 0; }
