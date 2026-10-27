@@ -112,7 +112,11 @@ def delete(request, room_id):
     get_object_or_404(Room, pk=room_id, organizer=request.user)
     if delete_room(user=request.user, room_id=room_id):
         messages.success(
-            request, "주문서를 삭제했어요. 삭제 이력은 개인정보의 내 주문 이력에 남아요."
+            request,
+            format_html(
+                "주문서를 삭제했어요.<br>{}",
+                "삭제 이력은 개인정보의 내 주문 이력에 남아요.",
+            ),
         )
     else:
         messages.info(request, "이미 종료된 주문서예요.")
