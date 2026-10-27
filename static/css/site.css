@@ -30,7 +30,7 @@ a { color: inherit; }
 .page-shell { max-width: 1184px; padding: 0 48px; margin: 0 auto; }
 .skip-link { position: absolute; left: 16px; top: -80px; padding: 12px; background: #fff; z-index: 10; }
 .skip-link:focus { top: 12px; }
-.site-header { --brand-name-size: calc(29.9px + var(--font-step)); --brand-mark-size: 52px; --brand-tagline-size: calc((13px + var(--font-step)) * 1.5); container-type: inline-size; min-height: 104px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 20px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.site-header { --brand-name-size: calc(29.9px + var(--font-step)); --brand-mark-size: 52px; --brand-tagline-size: calc((13px + var(--font-step)) * 1.5); position: relative; container-type: inline-size; min-height: 104px; display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); }
 .brand { display: inline-grid; flex-shrink: 0; max-width: 100%; grid-template-columns: var(--brand-mark-size) max-content; gap: 6px 10px; align-items: center; justify-items: start; text-decoration: none; color: var(--accent); font-size: var(--brand-name-size); font-weight: 700; letter-spacing: -1px; white-space: nowrap; }
 .brand-name { grid-column: 2; grid-row: 2; font-weight: 900; }
 .brand-mark { grid-column: 1; grid-row: 2; width: var(--brand-mark-size); height: var(--brand-mark-size); display: flex; align-items: center; justify-content: center; }
@@ -58,8 +58,9 @@ h1 { margin: 0; font-size: calc(clamp(42px, 4.8vw, 62px) + var(--font-step)); li
 .footer-access form { margin: 0; }
 .footer-access button { border: 0; background: none; padding: 10px 0; color: inherit; cursor: pointer; font: inherit; }
 .footer-access a { padding: 10px 0; text-decoration: none; }
-.header-account { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin: 0 0 0 auto; max-width: 100%; color: var(--muted); font-size: calc(12px + var(--font-step)); }
-.header-account .profile-link { min-width: 0; max-width: 100%; overflow-wrap: anywhere; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.header-account { position: absolute; right: 0; bottom: calc(16px + var(--brand-mark-size) / 2); transform: translateY(50%); z-index: 1; display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin: 0; max-width: calc(100% - var(--brand-mark-size) - var(--brand-name-size) * 2 - 22px); color: var(--muted); font-size: calc(12px + var(--font-step)); }
+.header-account .profile-link { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.header-account .text-button { flex-shrink: 0; white-space: nowrap; }
 .profile-info { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 14px 22px; font-size: calc(14px + var(--font-step)); line-height: 1.7; }
 .profile-info dt { color: var(--muted); }.profile-info dd { margin: 0; overflow-wrap: anywhere; }
 .account-code-row { display: flex; align-items: center; gap: 10px; }
@@ -122,7 +123,7 @@ h1 { margin: 0; font-size: calc(clamp(42px, 4.8vw, 62px) + var(--font-step)); li
   .hero h1 { font-size: calc(clamp(18px, 4.4vw, 24px) + var(--font-step)); letter-spacing: -.6px; }
   .start-button { min-height: 48px; padding: 10px 12px; font-size: calc((12px + var(--font-step)) * 1.3); }
   .service-status { font-size: calc(10px + var(--font-step)); }
-  .header-account { flex: 1 0 100%; min-width: 0; font-size: calc(11px + var(--font-step)); gap: 3px 8px; }
+  .header-account { font-size: calc(11px + var(--font-step)); gap: 8px; }
   .account-main { padding: 30px 0 40px; }.account-panel { padding: 20px; }.stack-form { max-width: none; }.stack-form .primary-button { width: 100%; }
   .how-it-works { padding: 24px 0; }
   .steps { --step-title-size: calc(clamp(12px, 3.35vw, 16px) + var(--font-step)); gap: 10px; }.steps li,.steps li:first-child { padding: 0; border: 0; }

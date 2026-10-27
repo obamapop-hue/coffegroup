@@ -38,7 +38,7 @@
         {% if request.user.is_authenticated %}
           <form class="header-account" action="{% url 'accounts:logout' %}" method="post">
             {% csrf_token %}
-            <a class="profile-link" href="{% url 'accounts:profile' %}" aria-label="{{ request.user.display_name }}님 개인정보">{{ request.user.display_name }}님</a>
+            <a class="profile-link" href="{% url 'accounts:profile' %}" aria-label="{{ request.user.display_name }}님 개인정보" title="{{ request.user.display_name }}님 개인정보">{{ request.user.display_name }}님</a>
             <button class="text-button" type="submit">로그아웃</button>
             <a class="text-button" href="{% url 'support:inbox' %}">문의하기</a>
           </form>
