@@ -7,6 +7,8 @@
 .seller-alert-controls button { font-size: calc(14px + var(--font-step)); }
 .seller-alerts .seller-alert-help { font-size: calc(12px + var(--font-step)); margin-bottom: 0; }
 .seller-alerts [data-alert-status] { color: var(--ink); font-weight: 600; }
+.seller-alert-check { display: inline-block; margin-right: 8px; color: #16803c; font-size: 1.2em; font-weight: 800; }
+.seller-alert-check[hidden] { display: none; }
 .seller-alert-controls [hidden], .seller-queue-alert[hidden], [data-seller-action-feedback][hidden] { display: none; }
 .seller-queue-alert { padding: 18px; margin: 20px 0; border: 2px solid var(--accent); border-radius: 12px; background: #fff6f5; color: var(--accent); font-weight: 700; line-height: 1.7; }
 [data-pending-order] { border-color: #e6c2bf; }

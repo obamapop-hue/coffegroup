@@ -9,8 +9,9 @@
 </section>
 <section class="account-panel seller-alerts" data-seller-alerts data-storage-key="yeongcha-alert-{{ request.user.pk }}-{{ cafe.pk }}" aria-labelledby="seller-alert-title">
   <h2 id="seller-alert-title">주문 알림</h2>
-  <p data-alert-status role="status" aria-live="polite">주문 알림을 켜 주세요.</p>
-  <div class="seller-alert-controls"><button class="primary-button" type="button" data-alert-enable>주문 알림 켜기</button><button class="text-button" type="button" data-alert-test>소리 테스트</button><button class="text-button" type="button" data-desktop-enable hidden>PC 알림 허용</button></div>
+  <p data-alert-status role="status" aria-live="polite"><span class="seller-alert-check" data-alert-check aria-hidden="true" hidden>✓</span><span data-alert-message>알림 기능이 활성화되지 않았습니다. 알림 활성화 버튼을 눌러주세요.</span></p>
+  <div class="seller-alert-controls"><button class="primary-button" type="button" data-alert-enable>알림 활성화</button><button class="text-button" type="button" data-alert-test>소리 테스트</button></div>
+  <p class="seller-alert-help" data-alert-detail role="status"></p>
   <p class="seller-alert-help">판매자 페이지를 켜 두고 소리가 들리는지 확인해 주세요. PC가 음소거되거나 절전 상태이면 알림을 놓칠 수 있어요.</p>
   <p class="seller-alert-help" data-desktop-status role="status"></p>
   <audio data-order-audio src="{% static 'audio/order-alert.wav' %}" preload="auto"></audio>
